@@ -1,4 +1,12 @@
-const nodemailer = require('nodemailer');
+const { MailtrapClient } = require('mailtrap');
+
+const client = new MailtrapClient({
+  token: process.env.MAILTRAP_API_TOKEN,
+});
+
+module.exports = client;
+
+/*const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAILTRAP_HOST,
