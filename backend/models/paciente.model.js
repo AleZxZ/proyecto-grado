@@ -192,9 +192,9 @@ const PacienteModel = {
     // plan de ortodoncia
     const [ortodoncia] = await db.query(`
       SELECT op.id, op.tipo_bracket, op.precio_total,
-            op.cuota_inicial, op.saldo_pendiente,
-            op.estado, op.creado_en,
-            COALESCE(SUM(os.cuota_pagada), 0) AS pagado_sesiones
+            op.cuota_inicial, op.estado, op.creado_en,
+            COALESCE(SUM(os.cuota_pagada), 0) AS pagado_sesiones,
+            (op.precio_total - op.cuota_inicial - COALESCE(SUM(os.cuota_pagada), 0)) AS saldo_pendiente
       FROM ortodoncia_plan op
       LEFT JOIN ortodoncia_sesiones os ON os.plan_id = op.id
       WHERE op.paciente_id = ?
