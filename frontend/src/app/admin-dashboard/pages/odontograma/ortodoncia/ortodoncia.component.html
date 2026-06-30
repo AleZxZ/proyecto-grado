@@ -159,7 +159,7 @@
     @if (!cargando && vista === 'ver' && planActivo) {
 
       <!-- Info del plan -->
-      <div class="px-4 lg:px-5 py-3 border-b"
+      <div class="px-4 lg:px-5 py-3 border-b sticky top-0 z-10"
         style="background:rgba(13,112,107,0.06); border-color:#D0D8DC;">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2 flex-wrap">
@@ -192,8 +192,8 @@
       </div>
 
       <!-- Tabs -->
-      <div class="flex border-b px-5 overflow-x-auto"
-        style="border-color:#D0D8DC; background:#EEF4F5;">
+      <div class="flex border-b px-5 overflow-x-auto sticky z-10"
+        style="border-color:#D0D8DC; background:#EEF4F5; top: 0;">
         <button class="px-3 lg:px-4 py-3 text-xs font-semibold transition-all flex-shrink-0"
           [style.color]="tabActiva === 'sesion' ? '#0d706b' : '#4a6870'"
           [style.border-bottom]="tabActiva === 'sesion' ? '2px solid #0d706b' : '2px solid transparent'"
