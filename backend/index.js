@@ -16,7 +16,12 @@ const NotificacionRoutes = require('./routes/notificacion.routes');
 const AjustesRoutes = require('./routes/ajustes.routes');
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:4200' }));
+app.use(cors({
+  origin: [
+    'http://localhost:4200',
+    'https://perceptive-nature-production.up.railway.app'
+  ]
+}));
 //app.use(cors());
 app.use(express.json());
 
