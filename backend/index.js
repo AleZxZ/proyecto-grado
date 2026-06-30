@@ -19,7 +19,7 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:4200',
-    'https://perceptive-nature-production.up.railway.app'
+    'https://perceptive-nature-production-3379.up.railway.app'
   ]
 }));
 //app.use(cors());
