@@ -1,0 +1,303 @@
+<div class="min-h-screen p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color:#162830;">Mis pagos</h1>
+    <p class="text-sm mt-1" style="color:#4a6870;">
+      Historial de pagos y deudas pendientes
+    </p>
+  </div>
+
+  <!-- LOADING -->
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#0d706b;"></span>
+    </div>
+  }
+
+  @if (!cargando && pagos) {
+
+    <!-- STATS -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="rounded-2xl p-5"
+        [style.background]="deudaTotal > 0
+          ? 'rgba(255,160,0,0.08)' : 'rgba(34,197,94,0.08)'"
+        [style.border]="deudaTotal > 0
+          ? '1px solid rgba(255,160,0,0.3)' : '1px solid rgba(34,197,94,0.3)'">
+        <p class="text-xs" style="color:#4a6870;">Deuda pendiente Odontograma</p>
+        <p class="text-2xl font-bold mt-1"
+          [style.color]="deudaTotal > 0 ? '#FFA000' : '#22C55E'">
+          {{ deudaTotal > 0 ? 'Bs ' + deudaTotal : 'Al día ✓' }}
+        </p>
+      </div>
+      <div class="rounded-2xl p-5"
+        style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+        <p class="text-xs" style="color:#4a6870;">Total pagado Odontograma</p>
+        <p class="text-2xl font-bold mt-1" style="color:#00BCD4;">
+          Bs {{ totalPagado }}
+        </p>
+      </div>
+    </div>
+
+    <!-- ORTODONCIA -->
+    @if (planOrtodoncia) {
+    <div class="rounded-2xl overflow-hidden mb-4"
+        style="border:1px solid rgba(13,112,107,0.3);">
+
+        <div class="flex items-center justify-between px-4 py-3"
+        style="background:rgba(13,112,107,0.1); border-bottom:1px solid rgba(13,112,107,0.2);">
+        <div class="flex items-center gap-2">
+            <span style="font-size:16px;">🦷</span>
+            <p class="text-sm font-semibold" style="color:#0d706b;">
+            Plan de Ortodoncia
+            </p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded-full font-medium"
+            [style.background]="planOrtodoncia.estado === 'activo'
+            ? 'rgba(13,112,107,0.2)' : 'rgba(156,163,175,0.2)'"
+            [style.color]="planOrtodoncia.estado === 'activo'
+            ? '#0d706b' : '#4a6870'">
+            {{ planOrtodoncia.estado === 'activo' ? '● Activo' : planOrtodoncia.estado }}
+        </span>
+        </div>
+
+        <div class="p-4 grid grid-cols-2 gap-3 text-xs">
+        <div>
+            <p style="color:#4a6870;">Tipo de bracket</p>
+            <p class="font-semibold mt-1" style="color:#162830;">
+            {{ getTipoBracketLabel }}
+            </p>
+        </div>
+        <div>
+            <p style="color:#4a6870;">Precio total</p>
+            <p class="font-semibold mt-1" style="color:#162830;">
+            Bs {{ planOrtodoncia.precio_total }}
+            </p>
+        </div>
+        <div>
+            <p style="color:#4a6870;">Total pagado</p>
+            <p class="font-semibold mt-1" style="color:#22C55E;">
+            Bs {{ totalPagadoOrtodoncia }}
+            </p>
+        </div>
+        <div>
+            <p style="color:#4a6870;">Saldo pendiente</p>
+            <p class="font-semibold mt-1"
+            [style.color]="planOrtodoncia.saldo_pendiente > 0 ? '#EF4444' : '#22C55E'">
+            Bs {{ planOrtodoncia.saldo_pendiente }}
+            </p>
+        </div>
+        </div>
+
+        <!-- Barra progreso -->
+        <div class="px-4 pb-4">
+        <div class="w-full h-2 rounded-full" style="background:#D0D8DC;">
+            <div class="h-2 rounded-full" style="background:#0d706b;"
+            [style.width.%]="planOrtodoncia.precio_total > 0
+                ? (totalPagadoOrtodoncia / planOrtodoncia.precio_total) * 100
+                : 0">
+            </div>
+        </div>
+        <p class="text-[10px] mt-1 text-right" style="color:#4a6870;">
+            {{ planOrtodoncia.precio_total > 0
+            ? ((totalPagadoOrtodoncia / planOrtodoncia.precio_total) * 100).toFixed(0)
+            : 0 }}% pagado
+        </p>
+        </div>
+
+    </div>
+    }
+
+    <!-- TABS -->
+    <div class="flex border-b mb-4" style="border-color:#D0D8DC;">
+      <button class="px-4 py-3 text-xs font-semibold transition-all"
+        [style.color]="tabActual === 'pendientes' ? '#0d706b' : '#4a6870'"
+        [style.border-bottom]="tabActual === 'pendientes'
+          ? '2px solid #0d706b' : '2px solid transparent'"
+        (click)="tabActual = 'pendientes'">
+        Tratamientos
+      </button>
+      <button class="px-4 py-3 text-xs font-semibold transition-all"
+        [style.color]="tabActual === 'historial' ? '#0d706b' : '#4a6870'"
+        [style.border-bottom]="tabActual === 'historial'
+          ? '2px solid #0d706b' : '2px solid transparent'"
+        (click)="tabActual = 'historial'">
+        Abonos ({{ pagos?.abonos?.length ?? 0 }})
+      </button>
+      @if (planOrtodoncia) {
+        <button class="px-4 py-3 text-xs font-semibold transition-all"
+          [style.color]="tabActual === 'ortodoncia' ? '#0d706b' : '#4a6870'"
+          [style.border-bottom]="tabActual === 'ortodoncia'
+            ? '2px solid #0d706b' : '2px solid transparent'"
+          (click)="tabActual = 'ortodoncia'">
+          Ortodoncia ({{ pagos?.sesiones?.length ?? 0 }})
+        </button>
+      }
+    </div>
+
+    <!-- TAB TRATAMIENTOS -->
+    @if (tabActual === 'pendientes') {
+      <div class="flex flex-col gap-3">
+        @for (p of pagos?.pendientes; track p.id) {
+          <div class="rounded-2xl overflow-hidden"
+            [style.border]="p.estado === 'cancelado'
+              ? '1px solid #22C55E' : '1px solid #FFA000'"
+            [style.opacity]="p.estado === 'cancelado' ? '0.7' : '1'">
+
+            <div class="flex items-center justify-between px-4 py-2"
+              [style.background]="p.estado === 'cancelado'
+                ? 'rgba(34,197,94,0.08)' : 'rgba(255,160,0,0.08)'">
+              <span class="text-xs font-semibold" style="color:#162830;">
+                {{ p.concepto }}
+              </span>
+              <div class="flex items-center gap-2">
+                @if (p.fecha_tratamiento) {
+                  <span class="text-[10px]" style="color:#4a6870;">
+                    {{ formatFecha(p.fecha_tratamiento) }}
+                  </span>
+                }
+                <span class="text-[10px] px-2 py-1 rounded-full font-medium"
+                  [style.background]="p.estado === 'cancelado'
+                    ? 'rgba(34,197,94,0.15)' : 'rgba(255,160,0,0.15)'"
+                  [style.color]="p.estado === 'cancelado' ? '#15803d' : '#7a4a00'">
+                  {{ p.estado === 'cancelado' ? '✓ Cancelado' : '⚠ Pendiente' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="px-4 py-3 grid grid-cols-3 gap-2 text-xs">
+              <div>
+                <p style="color:#4a6870;">Total</p>
+                <p class="font-bold" style="color:#162830;">Bs {{ p.monto_total }}</p>
+              </div>
+              <div>
+                <p style="color:#4a6870;">Pagado</p>
+                <p class="font-medium" style="color:#22C55E;">Bs {{ p.monto_pagado }}</p>
+              </div>
+              <div>
+                <p style="color:#4a6870;">Saldo</p>
+                <p class="font-bold"
+                  [style.color]="p.saldo > 0 ? '#EF4444' : '#22C55E'">
+                  Bs {{ p.saldo }}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        } @empty {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay tratamientos registrados
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB HISTORIAL ABONOS -->
+    @if (tabActual === 'historial') {
+      <div class="flex flex-col gap-3">
+        @for (a of pagos?.abonos; track a.id) {
+          <div class="rounded-xl overflow-hidden"
+            style="border:1px solid #D0D8DC;">
+            <div class="flex items-center justify-between px-4 py-2"
+              style="background:rgba(0,188,212,0.08); border-bottom:1px solid #D0D8DC;">
+              <span class="text-xs font-semibold" style="color:#005f6b;">
+                {{ formatFecha(a.creado_en) }}
+              </span>
+              <span class="text-sm font-bold" style="color:#00BCD4;">
+                Bs {{ a.monto }}
+              </span>
+            </div>
+            <div class="px-4 py-3 flex flex-col gap-1">
+              @if (a.notas) {
+                <p class="text-xs" style="color:#4a6870;">{{ a.notas }}</p>
+              }
+              <p class="text-[10px] font-semibold uppercase tracking-widest mt-1"
+                style="color:#4a6870;">
+                Distribuido en:
+              </p>
+              @for (d of parseDetalle(a.detalle); track d.pago_id) {
+                <div class="flex justify-between text-xs px-2 py-1 rounded"
+                  style="background:#F0F4F5;">
+                  <span style="color:#162830;">{{ d.concepto }}</span>
+                  <span class="font-mono font-bold" style="color:#00BCD4;">
+                    Bs {{ d.monto }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay abonos registrados
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB ORTODONCIA -->
+    @if (tabActual === 'ortodoncia') {
+      <div class="flex flex-col gap-3">
+
+        <!-- Resumen plan -->
+        @if (planOrtodoncia) {
+          <div class="rounded-2xl p-4"
+            style="background:rgba(13,112,107,0.08); border:1px solid rgba(13,112,107,0.2);">
+            <div class="grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <p style="color:#4a6870;">Precio total</p>
+                <p class="font-bold mt-1" style="color:#162830;">
+                  Bs {{ planOrtodoncia.precio_total }}
+                </p>
+              </div>
+              <div>
+                <p style="color:#4a6870;">Total pagado</p>
+                <p class="font-bold mt-1" style="color:#22C55E;">
+                  Bs {{ totalPagadoOrtodoncia }}
+                </p>
+              </div>
+              <div>
+                <p style="color:#4a6870;">Saldo</p>
+                <p class="font-bold mt-1"
+                  [style.color]="planOrtodoncia.saldo_pendiente > 0 ? '#EF4444' : '#22C55E'">
+                  Bs {{ planOrtodoncia.saldo_pendiente }}
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Sesiones -->
+        @for (s of pagos?.sesiones; track s.id) {
+          <div class="rounded-xl overflow-hidden"
+            style="border:1px solid #D0D8DC;">
+            <div class="flex items-center justify-between px-4 py-2"
+              style="background:rgba(13,112,107,0.08); border-bottom:1px solid #D0D8DC;">
+              <span class="text-xs font-semibold" style="color:#0d706b;">
+                Sesión {{ formatFecha(s.fecha_sesion) }}
+              </span>
+              @if (s.cuota_pagada > 0) {
+                <span class="text-sm font-bold" style="color:#0d706b;">
+                  Bs {{ s.cuota_pagada }}
+                </span>
+              } @else {
+                <span class="text-xs" style="color:#B0BEC5;">Sin pago</span>
+              }
+            </div>
+            @if (s.observaciones) {
+              <div class="px-4 py-2">
+                <p class="text-xs" style="color:#4a6870;">{{ s.observaciones }}</p>
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay sesiones registradas
+          </div>
+        }
+
+      </div>
+    }
+
+  }
+
+</div>

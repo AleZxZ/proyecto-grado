@@ -1,0 +1,956 @@
+<!-- src/app/components/calendar/calendar.component.html -->
+<div class="min-h-screen" style="background:#F8F9FA; color:#162830;">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="navbar px-3 lg:px-6 shadow-sm" style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+    <div class="navbar-start gap-2">
+      <span class="text-lg">🦷</span>
+      <span class="text-sm lg:text-lg font-light hidden sm:block">
+        Clínica <strong class="font-bold">Dental Escobar</strong>
+      </span>
+    </div>
+    <div class="navbar-end gap-1">
+      <button class="btn btn-sm gap-1 lg:gap-2"
+        style="background:#00BCD4; color:white; border:none;"
+        (click)="abrirNuevaCita()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span class="hidden sm:inline">Nueva cita</span>
+      </button>
+      <button class="btn btn-sm btn-ghost" (click)="cargarTodo()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ STATS BAR ═══ -->
+  <div class="flex items-center gap-3 lg:gap-4 px-3 lg:px-6 py-3 overflow-x-auto"
+  style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+
+  <!-- Solo visible en desktop -->
+  <div class="hidden lg:flex items-center gap-2 flex-shrink-0">
+    <span class="font-mono text-lg lg:text-2xl font-bold">{{ totalPredicciones }}</span>
+    <span class="text-xs opacity-50">Total</span>
+  </div>
+
+  <div class="hidden lg:block w-px h-5 flex-shrink-0" style="background:#D0D8DC;"></div>
+
+  <div class="hidden lg:flex items-center gap-1 lg:gap-2 flex-shrink-0">
+    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#00BCD4;"></span>
+    <span class="font-mono text-base lg:text-xl font-bold" style="color:#00BCD4">{{ totalSuc1 }}</span>
+    <span class="text-xs opacity-50">Centro</span>
+  </div>
+
+  <div class="hidden lg:block w-px h-5 flex-shrink-0" style="background:#D0D8DC;"></div>
+
+  <div class="hidden lg:flex items-center gap-1 lg:gap-2 flex-shrink-0">
+    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#8BC34A;"></span>
+    <span class="font-mono text-base lg:text-xl font-bold" style="color:#8BC34A">{{ totalSuc2 }}</span>
+    <span class="text-xs opacity-50">Este</span>
+  </div>
+
+  <div class="hidden lg:block w-px h-5 flex-shrink-0" style="background:#D0D8DC;"></div>
+
+  <!-- Toggle siempre visible -->
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <span class="text-xs font-medium" style="color:#4a6870">
+      {{ mostrarPredicciones ? 'Predicciones ON' : 'Predicciones OFF' }}
+    </span>
+    <input type="checkbox" class="toggle toggle-sm"
+      [(ngModel)]="mostrarPredicciones"
+      (ngModelChange)="aplicarFiltro()" checked/>
+  </div>
+
+  <!-- Navegación y filtro siempre visibles -->
+  <div class="ml-auto flex items-center gap-2 flex-shrink-0">
+    <div class="flex items-center gap-1">
+      <button class="btn btn-xs btn-ghost px-1"
+        [disabled]="mesOffset <= 0"
+        [style.opacity]="mesOffset <= 0 ? '0.3' : '1'"
+        (click)="mesAnterior()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <button class="btn btn-xs btn-ghost px-2 text-xs"
+        (click)="mesOffset = 0; construirMesesPublico()">
+        Hoy
+      </button>
+      <button class="btn btn-xs btn-ghost px-1" (click)="mesSiguiente()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <select class="select select-xs lg:select-sm w-28 lg:w-44"
+      style="border:1px solid #D0D8DC; color:#162830; background-color:#F8F9FA;"
+      [(ngModel)]="filtroSucursal" (ngModelChange)="aplicarFiltro()">
+      <option [ngValue]="0">Todas</option>
+      <option [ngValue]="1">Sucursal Centro</option>
+      <option [ngValue]="2">Sucursal Este</option>
+    </select>
+  </div>
+</div>
+  <!-- ═══ LOADING ═══ -->
+  <div *ngIf="cargando"
+    class="flex items-center justify-center gap-4 py-24 opacity-60">
+    <span class="loading loading-spinner loading-md"
+      style="color:#00BCD4"></span>
+    <span class="text-sm">Entrenando árbol de decisiones ML-CART…</span>
+  </div>
+
+  <!-- ═══ ERROR ═══ -->
+  <div *ngIf="error && !cargando" class="alert alert-error m-6">
+    <span>⚠ {{ error }}</span>
+  </div>
+
+  <!-- ═══ CALENDARIOS — 2 meses en grid ═══ -->
+  <div *ngIf="!cargando && !error"
+    class="grid grid-cols-1 xl:grid-cols-2 gap-4 p-3 lg:p-6">
+
+    <div *ngFor="let m of meses"
+      class="rounded-2xl overflow-hidden"
+      style="background:#EEF4F5; border:1px solid #D0D8DC; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+      <!-- Encabezado mes -->
+      <div class="px-4 lg:px-5 py-3 lg:py-4"
+        style="background:#E2E8EA; border-bottom:1px solid #D0D8DC;">
+        <h2 class="text-sm lg:text-base font-semibold tracking-tight">
+          {{ m.nombre }}
+          <span class="opacity-40 font-light ml-1">{{ m.anio }}</span>
+        </h2>
+      </div>
+
+      <!-- Días de semana -->
+      <div class="grid grid-cols-7"
+        style="background:#E2E8EA; border-bottom:1px solid #D0D8DC;">
+        <div *ngFor="let d of DIAS_HDR"
+          class="text-center py-2 text-[9px] lg:text-[10px] font-semibold tracking-widest uppercase"
+          style="color:#4a6870;">
+          {{ d.slice(0,3) }}
+        </div>
+      </div>
+
+      <!-- Semanas -->
+      <div *ngFor="let semana of m.semanas"
+        class="grid grid-cols-7" style="border-bottom:1px solid #D0D8DC;">
+
+        <ng-container *ngFor="let celda of semana">
+
+          <div *ngIf="!celda.numero"
+            class="min-h-[60px] lg:min-h-[80px]"
+            style="border-right:1px solid #D0D8DC; background:#F0F4F5;">
+          </div>
+
+          <div *ngIf="celda.numero"
+            class="min-h-[60px] lg:min-h-[80px] p-[2px] lg:p-[3px] flex flex-col gap-[2px] transition-colors"
+            style="border-right:1px solid #D0D8DC;"
+            [style.background]="celda.esHoy ? 'rgba(251,191,36,0.08)' : ''"
+            [style.outline]="celda.esHoy ? '2px solid rgba(251,191,36,0.5)' : ''"
+            [style.outline-offset]="celda.esHoy ? '-2px' : ''"
+            [style.opacity]="celda.esPasado ? '0.35' : '1'"
+            [style.cursor]="(celda.predicciones?.length ?? 0) > 0 || ((celda.confirmadas?.length ?? 0) > 0) ? 'pointer' : 'default'"
+            (click)="abrirDia(celda)">
+
+            <span class="text-[10px] lg:text-[11px] font-medium leading-none px-[2px] py-[2px] w-fit rounded-full"
+              [style.background]="celda.esHoy ? '#FFA000' : 'transparent'"
+              [style.color]="celda.esHoy ? '#fff' : ((celda.predicciones?.length ?? 0) > 0 || (celda.confirmadas?.length ?? 0) > 0 ? '#162830' : '#B0BEC5')"
+              [style.font-weight]="celda.esHoy ? '700' : '500'">
+              {{ celda.numero }}
+            </span>
+
+            <div class="flex flex-col gap-[2px]">
+
+              <div *ngFor="let conf of celda.confirmadas"
+                class="flex items-center gap-[2px] rounded px-[3px] py-[2px] overflow-hidden"
+                style="background: rgba(255,160,0,0.18); border-left: 2px solid #FFA000;"
+                (mouseenter)="mostrarTooltipConf($event, conf)"
+                (mouseleave)="ocultarTooltip()"
+                (click)="$event.stopPropagation()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="shrink-0"
+                  style="width:7px;height:7px;color:#FFA000;" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span class="font-mono text-[8px] lg:text-[9px] font-semibold shrink-0"
+                  style="color:#b36200;">{{ conf.hora }}</span>
+                <span class="text-[8px] lg:text-[10px] font-semibold truncate"
+                  style="color:#7a4a00;">{{ conf.paciente_nombre.split(' ')[0] }}</span>
+              </div>
+
+              <ng-container *ngFor="let pred of maxVisibles(celda.predicciones)">
+                <div *ngIf="pred.sucursal_id === 1"
+                  class="flex items-center gap-[2px] rounded px-[3px] py-[2px] overflow-hidden"
+                  style="background: rgba(0,188,212,0.15); border-left: 2px solid #00BCD4;"
+                  (mouseenter)="mostrarTooltip($event, pred)"
+                  (mouseleave)="ocultarTooltip()"
+                  (click)="$event.stopPropagation()">
+                  <span class="font-mono text-[8px] lg:text-[9px] font-semibold shrink-0"
+                    style="color:#005f6b;">{{ pred.hora }}</span>
+                  <span class="text-[8px] lg:text-[10px] font-semibold truncate"
+                    style="color:#004d56;">{{ pred.paciente_nombre.split(' ')[0] }}</span>
+                </div>
+
+                <div *ngIf="pred.sucursal_id === 2"
+                  class="flex items-center gap-[2px] rounded px-[3px] py-[2px] overflow-hidden"
+                  style="background: rgba(139,195,74,0.15); border-left: 2px solid #8BC34A;"
+                  (mouseenter)="mostrarTooltip($event, pred)"
+                  (mouseleave)="ocultarTooltip()"
+                  (click)="$event.stopPropagation()">
+                  <span class="font-mono text-[8px] lg:text-[9px] font-semibold shrink-0"
+                    style="color:#3d5c1a;">{{ pred.hora }}</span>
+                  <span class="text-[8px] lg:text-[10px] font-semibold truncate"
+                    style="color:#2d4a10;">{{ pred.paciente_nombre.split(' ')[0] }}</span>
+                </div>
+              </ng-container>
+
+              <div *ngIf="extraCount(celda.predicciones) > 0"
+                class="text-[8px] lg:text-[9px] opacity-40 text-center">
+                +{{ extraCount(celda.predicciones) }}
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LEYENDA ═══ -->
+  <div *ngIf="!cargando"
+    class="flex flex-wrap items-center gap-5 px-6 pb-5 text-xs" style="color:#4a6870;">
+    <div class="flex items-center gap-2">
+      <span class="w-5 h-3 rounded-sm"
+        style="background:rgba(0,188,212,0.15);border-left:2px solid #00BCD4;"></span>
+      Sucursal Centro
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="w-5 h-3 rounded-sm"
+        style="background:rgba(139,195,74,0.15);border-left:2px solid #8BC34A;"></span>
+      Sucursal Este
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="w-4 h-4 rounded-full" style="background:rgba(255,160,0,0.2);outline:2px solid rgba(255,160,0,0.6);"></span>
+      Agendado
+    </div>
+  
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TOOLTIP — aparece al hacer hover sobre un chip
+═══════════════════════════════════════════════════ -->
+<div *ngIf="tooltip.pred"
+  class="fixed z-[9999] pointer-events-none -translate-x-1/2 -translate-y-full transition-opacity duration-150"
+  [style.left.px]="tooltip.x"
+  [style.top.px]="tooltip.y - 12"
+  [style.opacity]="tooltip.visible ? 1 : 0">
+
+  <div class="rounded-xl shadow-2xl w-64 overflow-hidden border"
+    [style.border-color]="tooltip.pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'"
+    style="background:#F8F9FA">
+
+    <!-- Header coloreado por sucursal -->
+    <div class="px-3 py-2 text-[10px] font-bold tracking-widest uppercase"
+      [style.background]="tooltip.pred.sucursal_id === 1 ? 'rgba(0,188,212,0.15)' : 'rgba(139,195,74,0.15)'"
+      [style.color]="tooltip.pred.sucursal_id === 1 ? '#005f6b' : '#3d5c1a'">
+      {{ tooltip.pred.sucursal_nombre }}
+    </div>
+
+    <div class="p-3 flex flex-col gap-2">
+
+      <!-- Nombre paciente -->
+      <p class="font-bold text-sm" style="color:#162830">
+        {{ tooltip.pred.paciente_nombre }}
+      </p>
+
+      <!-- Hora destacada -->
+      <div class="flex items-center justify-between text-xs">
+        <span style="color:#4a6870">Hora</span>
+        <span class="font-mono font-bold text-sm"
+          [style.color]="tooltip.pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+          {{ tooltip.pred.hora }} hs
+        </span>
+      </div>
+
+      <div class="w-full h-px" style="background:#D0D8DC"></div>
+
+      <!-- Tratamiento -->
+      <div class="flex justify-between gap-2 text-xs">
+        <span style="color:#4a6870">Tratamiento</span>
+        <span class="text-right font-medium" style="color:#162830">
+          {{ tooltip.pred.tratamiento }}
+        </span>
+      </div>
+
+      <!-- Tipo -->
+      <div class="flex justify-between gap-2 text-xs">
+        <span style="color:#4a6870">Tipo</span>
+        <span class="text-right" style="color:#162830">
+          {{ tooltip.pred.subtratamiento }}
+        </span>
+      </div>
+
+      <!-- Motivo -->
+      <div class="flex justify-between gap-2 text-xs">
+        <span style="color:#4a6870">Motivo</span>
+        <span class="text-right" style="color:#162830">
+          {{ tooltip.pred.motivo }}
+        </span>
+      </div>
+
+      <div class="w-full h-px" style="background:#D0D8DC"></div>
+
+      <!-- Confianza con barra -->
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-xs">
+          <span style="color:#4a6870">Confianza ML-CART</span>
+          <span class="font-mono font-bold"
+            [style.color]="tooltip.pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+            {{ tooltip.pred.confianza }}%
+          </span>
+        </div>
+        <div class="w-full h-2 rounded-full" style="background:#D0D8DC">
+          <div class="h-2 rounded-full transition-all"
+            [style.width.%]="tooltip.pred.confianza"
+            [style.background]="tooltip.pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL — detalle completo del día
+═══════════════════════════════════════════════════ -->
+<div *ngIf="modalDia.visible"
+  class="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+  style="background:rgba(0,0,0,0.75)"
+  (click)="cerrarModal()">
+
+  <div class="w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl overflow-hidden border shadow-2xl"
+    style="background:#F8F9FA; border-color:#D0D8DC"
+    (click)="$event.stopPropagation()">
+
+    <!-- Modal header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b"
+      style="background:#EEF4F5; border-color:#D0D8DC">
+      <h3 class="font-semibold text-black">
+        📅 {{ formatFecha(modalDia.fecha) }} 
+      </h3>
+      <button class="btn btn-sm btn-circle btn-ghost opacity-60 hover:opacity-100"
+        (click)="cerrarModal()">✕</button>
+    </div>
+
+    <!-- Modal body -->
+    <div class="overflow-y-auto p-4 mb-3 gap-3">
+
+      <!-- ── Citas CONFIRMADAS desde BD ── -->
+      <div *ngFor="let conf of modalDia.confirmadas"
+        class="rounded-xl  mb-4"
+        style="border: 1px solid #FFA000; border-left: 4px solid #FFA000;">
+
+        <div class="flex items-center justify-between px-4 py-3"
+          style="background: rgba(255,160,0,0.12);">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded"
+              style="background:rgba(255,160,0,0.2); color:#7a4a00;">
+              {{ conf.sucursal_nombre }}
+            </span>
+            <span class="text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded flex items-center gap-1"
+              style="background:rgba(255,160,0,0.3); color:#7a4a00;">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width:10px;height:10px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              Cita agendada
+            </span>
+          </div>
+          <span class="font-mono font-bold text-sm" style="color:#FFA000;">
+            {{ conf.hora }} hs
+          </span>
+        </div>
+
+        <div class="px-4 py-3 flex flex-col gap-3" style="background:#FFFBF2;">
+          <p class="font-bold text-base" style="color:#162830;">{{ conf.paciente_nombre }}</p>
+          <div class="w-full h-px" style="background:#FFE0A0;"></div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            <div>
+              <p class="mb-1" style="color:#8a6020;">Tratamiento</p>
+              <p class="font-semibold" style="color:#162830;">{{ conf.tratamiento }}</p>
+            </div>
+            <div>
+              <p class="mb-1" style="color:#8a6020;">Subtratamiento</p>
+              <p class="font-medium" style="color:#2d4855;">{{ conf.subtratamiento }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="mb-1" style="color:#8a6020;">Motivo</p>
+              <p class="font-medium" style="color:#2d4855;">{{ conf.motivo }}</p>
+            </div>
+            <div *ngIf="conf.notas" class="col-span-2">
+              <p class="mb-1" style="color:#8a6020;">Notas</p>
+              <p class="font-medium" style="color:#2d4855;">{{ conf.notas }}</p>
+            </div>
+          </div>
+          <div class="w-full h-px" style="background:#FFE0A0;"></div>
+          <div class="flex items-center gap-2 text-xs" style="color:#8a6020;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Guardada en base de datos · ID #{{ conf.id }}
+          </div>
+          <!-- Botones estado + eliminar en una fila -->
+          <div class="flex gap-2 mt-2">
+
+            <!-- Realizada -->
+            <button
+              class="btn btn-xs flex-1"
+              style="background:rgba(34,197,94,0.15); color:#15803d; border:1px solid rgba(34,197,94,0.3); border-radius:10px;"
+              [disabled]="marcandoEstado === conf.id"
+              (click)="marcarEstadoCita(conf.id, 'realizada', $event)"
+              title="Marcar como realizada">
+              @if (marcandoEstado !== conf.id) {
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+              }
+              @if (marcandoEstado === conf.id) {
+                <span class="loading loading-spinner loading-xs"></span>
+              }
+            </button>
+
+            <!-- Cancelada -->
+            <button
+              class="btn btn-xs flex-1"
+              style="background:rgba(255,160,0,0.15); color:#7a4a00; border:1px solid rgba(255,160,0,0.3); border-radius:10px;"
+              [disabled]="marcandoEstado === conf.id"
+              (click)="marcarEstadoCita(conf.id, 'cancelada', $event)"
+              title="Marcar como cancelada">
+              @if (marcandoEstado !== conf.id) {
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              }
+              @if (marcandoEstado === conf.id) {
+                <span class="loading loading-spinner loading-xs"></span>
+              }
+            </button>
+
+            <!-- Eliminar -->
+            <button
+              class="btn btn-xs flex-1"
+              style="background:rgba(239,68,68,0.1); color:#dc2626; border:1px solid rgba(239,68,68,0.3); border-radius:10px;"
+              [disabled]="eliminandoCita === conf.id"
+              (click)="eliminarCita(conf.id, $event)"
+              title="Eliminar cita">
+              @if (eliminandoCita !== conf.id) {
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              }
+              @if (eliminandoCita === conf.id) {
+                <span class="loading loading-spinner loading-xs"></span>
+              }
+            </button>
+
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- ── Predicciones ML-CART ── -->
+      <div *ngFor="let pred of modalDia.predicciones"
+        class="rounded-xl  transition-all duration-300 mt-4"
+        [style.border]="estaConfirmada(pred) ? '1px solid #FFA000' : (pred.sucursal_id === 1 ? '1px solid #00BCD4' : '1px solid #8BC34A')"
+        [style.border-left]="estaConfirmada(pred) ? '4px solid #FFA000' : (pred.sucursal_id === 1 ? '4px solid #00BCD4' : '4px solid #8BC34A')">
+
+        <!-- Card header por sucursal -->
+        <div class="flex items-center justify-between px-4 py-3"
+          [style.background]="estaConfirmada(pred) ? 'rgba(255,160,0,0.12)' : (pred.sucursal_id === 1 ? 'rgba(0,188,212,0.15)' : 'rgba(139,195,74,0.15)')">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded"
+              [style.background]="estaConfirmada(pred) ? 'rgba(255,160,0,0.25)' : (pred.sucursal_id === 1 ? 'rgba(0,188,212,0.2)' : 'rgba(139,195,74,0.2)')"
+              [style.color]="estaConfirmada(pred) ? '#7a4a00' : (pred.sucursal_id === 1 ? '#005f6b' : '#3d5c1a')">
+              {{ pred.sucursal_nombre }}
+            </span>
+            <!-- Badge confirmada -->
+            <span *ngIf="estaConfirmada(pred)"
+              class="text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded"
+              style="background:rgba(255,160,0,0.2); color:#7a4a00;">
+              ✓ Agendada
+            </span>
+          </div>
+          <span class="font-mono font-bold text-sm"
+            [style.color]="estaConfirmada(pred) ? '#FFA000' : (pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A')">
+            {{ pred.hora }} hs
+          </span>
+        </div>
+
+        <!-- Card body -->
+        <div class="px-4 py-3 flex flex-col gap-3" style="background:#F8F9FA">
+
+          <!-- Nombre paciente -->
+          <p class="font-bold text-base" style="color:#162830">
+            {{ pred.paciente_nombre }}
+          </p>
+
+          <div class="w-full h-px" style="background:#D0D8DC"></div>
+
+          <!-- Info en grid -->
+          <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            <div>
+              <p class="mb-1" style="color:#4a6870">Tratamiento</p>
+              <p class="font-semibold" style="color:#162830; font-weight:600;">{{ pred.tratamiento }}</p>
+            </div>
+            <div>
+              <p class="mb-1" style="color:#4a6870">Subtratamiento</p>
+              <p class="font-medium" style="color:#162830">{{ pred.subtratamiento }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="mb-1" style="color:#4a6870">Motivo probable</p>
+              <p class="font-medium" style="color:#162830">{{ pred.motivo }}</p>
+            </div>
+          </div>
+
+          <div class="w-full h-px" style="background:#D0D8DC"></div>
+
+          <!-- Barra de confianza -->
+          <div>
+            <div class="flex justify-between text-xs mb-2">
+              <span style="color:#4a6870">Confianza ML-CART</span>
+              <span class="font-mono font-bold"
+                [style.color]="estaConfirmada(pred) ? '#FFA000' : (pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A')">
+                {{ pred.confianza }}%
+              </span>
+            </div>
+            <div class="w-full h-2 rounded-full" style="background:#D0D8DC">
+              <div class="h-2 rounded-full transition-all duration-500"
+                [style.width.%]="pred.confianza"
+                [style.background]="estaConfirmada(pred) ? '#FFA000' : (pred.sucursal_id === 1 ? '#00BCD4' : '#8BC34A')">
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón confirmar cita -->
+          <button
+            class="btn btn-sm w-full mt-2 font-semibold gap-2 transition-all duration-300"
+            [disabled]="estaConfirmada(pred)"
+            [style.background]="estaConfirmada(pred) ? 'rgba(255,160,0,0.15)' : (pred.sucursal_id === 1 ? '#0097A7' : '#689F38')"
+            [style.border]="estaConfirmada(pred) ? '1px solid #FFA000' : 'none'"
+            [style.color]="estaConfirmada(pred) ? '#7a4a00' : 'white'"
+            [style.cursor]="estaConfirmada(pred) ? 'not-allowed' : 'pointer'"
+            (click)="!estaConfirmada(pred) && abrirConfirmar(pred)">
+            <span *ngIf="!estaConfirmada(pred)">✓ Confirmar y agendar esta cita</span>
+            <span *ngIf="estaConfirmada(pred)">✓ Cita ya agendada</span>
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL CONFIRMAR CITA PREDICHA
+═══════════════════════════════════════════════════ -->
+<div *ngIf="modalConfirmar.visible"
+  class="fixed inset-0 z-[10001] flex items-center justify-center p-4"
+  style="background:rgba(0,0,0,0.80)"
+  (click)="cerrarConfirmar()">
+
+  <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+    style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b"
+      style="background:#EEF4F5; border-color:#D0D8DC">
+      <div>
+        <h3 class="font-bold text-base" style="color:#162830">Confirmar cita</h3>
+        <p class="text-xs mt-[2px]" style="color:#4a6870">
+          Esta cita se guardará como <span class="font-semibold" style="color:#fbbf24">pendiente</span>
+        </p>
+      </div>
+      <button class="btn btn-sm btn-circle btn-ghost opacity-50 hover:opacity-100"
+        (click)="cerrarConfirmar()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+      <!-- Info paciente (solo lectura) -->
+      <div class="rounded-xl p-4 border"
+        [style.background]="modalConfirmar.pred?.sucursal_id === 1 ? 'rgba(91,33,182,0.2)' : 'rgba(6,78,59,0.2)'"
+        [style.border-color]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded"
+            [style.background]="modalConfirmar.pred?.sucursal_id === 1 ? 'rgba(91,33,182,0.5)' : 'rgba(6,78,59,0.5)'"
+            [style.color]="modalConfirmar.pred?.sucursal_id === 1 ? '#c4b5fd' : '#6ee7b7'">
+            {{ modalConfirmar.pred?.sucursal_nombre }}
+          </span>
+          <span class="font-mono font-bold text-sm"
+            [style.color]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+            {{ modalConfirmar.pred?.fecha }}
+          </span>
+        </div>
+
+        <p class="font-bold text-base mb-1" style="color:#162830">
+          {{ modalConfirmar.pred?.paciente_nombre }}
+        </p>
+        <p class="text-xs" style="color:#9ca3af">
+          {{ modalConfirmar.pred?.tratamiento }} · {{ modalConfirmar.pred?.subtratamiento }}
+        </p>
+      </div>
+
+      <!-- Formulario editable -->
+      <div class="flex flex-col gap-3">
+
+        <!-- Hora -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Hora de la cita
+          </label>
+          <input
+            type="time"
+            class="input input-bordered input-sm w-full font-mono"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formCita.hora">
+        </div>
+
+        <!-- Tratamiento -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Tratamiento
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formCita.subtratamiento_id"
+            (ngModelChange)="onSubtratChange($event)">
+            <option *ngFor="let t of tratamientosDisponibles"
+              [ngValue]="t.subtratamiento_id">
+              {{ t.tratamiento }} — {{ t.subtratamiento }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Doctor -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Doctor asignado
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formCita.doctor_id">
+            <option [ngValue]="null">— Sin asignar —</option>
+            <option *ngFor="let d of doctoresDisponibles" [ngValue]="d.id">
+              {{ d.nombre }} · {{ d.especialidad }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Motivo -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Motivo de la cita
+          </label>
+          <input
+            type="text"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            placeholder="Ej: Control mensual ortodoncia"
+            [(ngModel)]="formCita.motivo">
+        </div>
+
+        <!-- Notas adicionales -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Notas adicionales <span class="font-normal opacity-50">(opcional)</span>
+          </label>
+          <textarea
+            class="textarea textarea-bordered textarea-sm w-full resize-none"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            rows="2"
+            placeholder="Observaciones o indicaciones especiales"
+            [(ngModel)]="formCita.notas">
+          </textarea>
+        </div>
+
+      </div>
+
+      <!-- Confianza ML -->
+      <div class="rounded-lg p-3 flex items-center gap-3" style="background:#EEF4F5; border:1px solid #D0D8DC">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+          [style.color]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        <div class="flex-1">
+          <p class="text-xs" style="color:#4a6870">
+            Confianza del árbol ML-CART
+          </p>
+          <div class="flex items-center gap-2 mt-1">
+            <div class="flex-1 h-1 rounded-full" style="background:#D0D8DC">
+              <div class="h-1 rounded-full"
+                [style.width.%]="modalConfirmar.pred?.confianza || 0"
+                [style.background]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+              </div>
+            </div>
+            <span class="font-mono text-xs font-bold"
+              [style.color]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'">
+              {{ modalConfirmar.pred?.confianza }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorConfirmar" class="alert alert-error text-sm py-2">
+        <span>⚠ {{ errorConfirmar }}</span>
+      </div>
+
+      <!-- Éxito -->
+      <div *ngIf="exitoConfirmar" class="alert alert-success text-sm py-2">
+        <span>✓ {{ exitoConfirmar }}</span>
+      </div>
+
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="flex gap-3 px-5 py-4 border-t" style="border-color:#D0D8DC; background:#EEF4F5">
+      <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870"
+        (click)="cerrarConfirmar()" [disabled]="guardando">
+        Cancelar
+      </button>
+      <button
+        class="btn btn-sm flex-1 font-semibold"
+        [style.background]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'"
+        [style.border-color]="modalConfirmar.pred?.sucursal_id === 1 ? '#00BCD4' : '#8BC34A'"
+        style="color:white"
+        (click)="confirmarCita()"
+        [disabled]="guardando || !!exitoConfirmar">
+        <span *ngIf="!guardando">
+          ✓ Confirmar y agendar
+        </span>
+        <span *ngIf="guardando" class="loading loading-spinner loading-xs"></span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+ <!-- ═══════════════════════════════════════════════════
+     MODAL NUEVA CITA CON EL BOTON "AGENDAR CITA"
+═══════════════════════════════════════════════════ -->
+  <div *ngIf="modalNuevaCita.visible"
+    class="fixed inset-0 z-[10002] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarNuevaCita()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830">Nueva cita</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870">
+            Agenda una cita manualmente para un paciente
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50 hover:opacity-100"
+          (click)="cerrarNuevaCita()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+        <!-- Sucursal -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Sucursal
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formNuevaCita.sucursal_id"
+            (ngModelChange)="onSucursalChangeNueva($event)">
+            <option [ngValue]="null">— Seleccionar sucursal —</option>
+            <option [ngValue]="1">Sucursal Centro</option>
+            <option [ngValue]="2">Sucursal Este</option>
+          </select>
+        </div>
+
+        <!-- Paciente -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Paciente
+          </label>
+          <div class="relative">
+            <input type="text"
+              class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Buscar paciente por nombre..."
+              [(ngModel)]="busquedaPaciente"
+              (ngModelChange)="filtrarPacientes()"/>
+
+            @if (pacientesFiltrados.length > 0) {
+              <div class="absolute z-50 w-full mt-1 rounded-xl overflow-hidden shadow-lg"
+                style="background:white; border:1px solid #D0D8DC; max-height:200px; overflow-y:auto;">
+                @for (p of pacientesFiltrados; track p.id) {
+                  <div class="px-4 py-2 cursor-pointer text-sm transition-all hover:bg-gray-50"
+                    style="border-bottom:1px solid #F0F4F5; color:#162830;"
+                    (click)="seleccionarPaciente(p)">
+                    {{ p.nombre }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Tratamiento -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Tratamiento
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formNuevaCita.subtratamiento_id"
+            (ngModelChange)="onSubtratChangeNueva($event)"
+            [disabled]="!formNuevaCita.sucursal_id">
+            <option [ngValue]="null">— Seleccionar tratamiento —</option>
+            <option *ngFor="let t of tratamientosNuevaCita" [ngValue]="t.subtratamiento_id">
+              {{ t.tratamiento }} — {{ t.subtratamiento }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Doctor -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Doctor asignado
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formNuevaCita.doctor_id"
+            [disabled]="!formNuevaCita.sucursal_id">
+            <option [ngValue]="null">— Sin asignar —</option>
+            <option *ngFor="let d of doctoresNuevaCita" [ngValue]="d.id">
+              {{ d.nombre }} · {{ d.especialidad }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Fecha -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Fecha
+          </label>
+          <input
+            type="date"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formNuevaCita.fecha"
+            (ngModelChange)="verificarDisponibilidad()"
+            [min]="fechaMinima"/>
+        </div>
+
+        <!-- Hora -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Hora
+          </label>
+          <input
+            type="time"
+            class="input input-bordered input-sm w-full font-mono"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            [(ngModel)]="formNuevaCita.hora"
+            (ngModelChange)="verificarDisponibilidad()"/>
+        </div>
+
+        <!-- Alerta disponibilidad -->
+        <div *ngIf="disponibilidadMsg"
+          class="rounded-lg px-4 py-3 text-xs font-medium flex items-center gap-2"
+          [style.background]="disponibilidadOk ? 'rgba(139,195,74,0.15)' : 'rgba(255,160,0,0.15)'"
+          [style.border]="disponibilidadOk ? '1px solid #8BC34A' : '1px solid #FFA000'"
+          [style.color]="disponibilidadOk ? '#3d5c1a' : '#7a4a00'">
+          <span>{{ disponibilidadOk ? '✓' : '⚠' }}</span>
+          {{ disponibilidadMsg }}
+        </div>
+
+        <!-- Motivo -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Motivo
+          </label>
+          <input
+            type="text"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            placeholder="Ej: Control mensual ortodoncia"
+            [(ngModel)]="formNuevaCita.motivo"/>
+        </div>
+
+        <!-- Notas -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af">
+            Notas <span class="font-normal opacity-50">(opcional)</span>
+          </label>
+          <textarea
+            class="textarea textarea-bordered textarea-sm w-full resize-none"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830"
+            rows="2"
+            placeholder="Observaciones especiales"
+            [(ngModel)]="formNuevaCita.notas">
+          </textarea>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorNuevaCita" class="alert alert-error text-sm py-2">
+          <span>⚠ {{ errorNuevaCita }}</span>
+        </div>
+
+        <!-- Éxito -->
+        <div *ngIf="exitoNuevaCita" class="alert alert-success text-sm py-2">
+          <span>✓ {{ exitoNuevaCita }}</span>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870"
+          (click)="cerrarNuevaCita()" [disabled]="guardandoNueva">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#00BCD4; color:white; border:none;"
+          (click)="guardarNuevaCita()"
+          [disabled]="guardandoNueva || !!exitoNuevaCita || !disponibilidadOk">
+          <span *ngIf="!guardandoNueva">+ Agendar cita</span>
+          <span *ngIf="guardandoNueva" class="loading loading-spinner loading-xs"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>

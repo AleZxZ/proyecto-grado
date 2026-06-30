@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.2",
+    "cors": "^2.8.6",
+    "daisyui": "^5.5.19",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}

@@ -1,0 +1,29 @@
+/* Toggle hemorragia anormal */
+.toggle-hemorragia {
+  border-color: #D0D8DC;
+  background-color: #606d74;
+}
+
+.toggle-hemorragia:checked {
+  border-color: #00BCD4;
+  background-color: #00BCD4;
+}
+
+.cerrar-modal {
+  border-color: #D0D8DC;
+  background-color: #606d74;
+}
+
+.cerrar-modal:hover {
+  border-color: #24b2c5;
+  background-color: #24b2c5;
+}
+
+.editar {
+  border-color: #D0D8DC;
+  background-color: #ffffff;
+}
+.editar:hover {
+  border-color: #24b2c5;
+  background-color: #24b2c5;
+}

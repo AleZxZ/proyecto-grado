@@ -1,0 +1,1273 @@
+<div class="min-h-screen p-6" style="background:#F8F9FA; color:#162830;">
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold" style="color:#162830;">Odontograma</h1>
+      <p class="text-sm mt-1" style="color:#4a6870;">
+        Selecciona un paciente para ver su odontograma
+      </p>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="relative w-full max-w-sm mb-6">
+    <div class="flex items-center gap-2">
+      <input type="text"
+        class="input input-bordered input-sm w-full"
+        style="background:white; border-color:#D0D8DC; color:#162830;"
+        placeholder="Buscar paciente..."
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtrar()"/>
+      @if (pacienteSeleccionado) {
+        <button class="btn btn-sm btn-ghost" style="color:#EF4444;"
+          (click)="limpiarPaciente()">✕</button>
+      }
+    </div>
+
+    @if (pacientesFiltrados.length > 0 && !pacienteSeleccionado) {
+      <div class="absolute top-full left-0 right-0 z-50 rounded-xl shadow-xl mt-1"
+        style="background:white; border:1px solid #D0D8DC; max-height:200px; overflow-y:auto;">
+        @for (p of pacientesFiltrados; track p.id) {
+          <div class="flex items-center gap-3 px-4 py-3 cursor-pointer"
+            style="border-bottom:1px solid #F0F4F5;"
+            (click)="seleccionarPaciente(p)">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center"
+              style="background:rgba(0,188,212,0.15); color:#00BCD4; font-size:11px; font-weight:700;">
+              {{ p.nombre?.charAt(0) }}
+            </div>
+            <span class="text-sm" style="color:#162830;">{{ p.nombre }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PACIENTE -->
+  @if (pacienteSeleccionado) {
+    <div class="flex items-center justify-between gap-3 mb-6 px-4 py-3 rounded-xl"
+      style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center"
+          style="background:rgba(0,188,212,0.2); color:#00BCD4; font-weight:700;">
+          {{ pacienteSeleccionado.nombre?.charAt(0) }} 
+        </div>
+        <div>
+          <p class="font-semibold text-sm" style="color:#162830;">{{ pacienteSeleccionado.nombre }}</p>
+          <p class="text-xs" style="color:#4a6870;">{{ pacienteSeleccionado.sucursal }}</p>
+        </div>
+      </div>
+
+      
+      <!-- Botones — apilados en móvil, fila en desktop -->
+      <div class="flex flex-wrap gap-2 mt-2">
+        <button class="btn btn-sm gap-2"
+          style="background:rgba(13, 112, 107, 0.801); color:#ffffff; border:1px solid rgba(13, 112, 107, 0.600);"
+          (click)="abrirModalImprimir()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          Imprimir
+        </button>
+
+        <button class="btn btn-sm gap-2"
+          style="background:rgba(255,160,0,0.15); color:#7a4a00; border:1px solid rgba(255,160,0,0.3);"
+          (click)="abrirHistorialClinicoPaciente()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Ficha clínica
+        </button>
+
+        <button class="btn btn-sm gap-2"
+          style="background:rgba(0,188,212,0.15); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+          (click)="abrirHistorialClinico()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          Ver historial clínico
+        </button>
+
+        <button class="btn btn-sm gap-2"
+          style="background:rgba(97, 98, 99, 0.644); color:#f8ffff; border:1px solid rgba(97, 98, 99, 0.300);"
+          (click)="abrirOrtodoncia()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+          Ortodoncia
+        </button>
+      </div>
+
+    </div>
+  }
+
+  <!-- Modal ortodoncia -->
+  @if (modalOrtodonciaVisible) {
+    <app-ortodoncia
+      [paciente]="pacienteSeleccionado"
+      (cerrar)="cerrarOrtodoncia()">
+    </app-ortodoncia>
+  }
+
+  <!-- LEYENDA -->
+  @if (pacienteSeleccionado) {
+    <div class="flex flex-wrap gap-3 mb-6">
+      @for (estado of ESTADOS; track estado.value) {
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded border"
+            [style.background]="COLORES[estado.value]"
+            style="border-color:#D0D8DC;"></div>
+          <span class="text-xs" style="color:#4a6870;">{{ estado.label }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ODONTOGRAMA -->
+  @if (pacienteSeleccionado && !cargando) {
+    <div class="rounded-2xl overflow-hidden"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+
+      <div class="px-4 py-2 text-xs font-semibold uppercase tracking-widest"
+        style="background:#E2E8EA; color:#4a6870; border-bottom:1px solid #D0D8DC;">
+        Maxilar Superior
+      </div>
+      <div class="p-4 overflow-x-auto">
+        <div class="flex justify-center gap-2 min-w-max">
+          @for (diente of SUPERIOR_DERECHO; track diente) {
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-mono font-bold" style="color:#4a6870;">{{ diente }}</span>
+              <ng-container *ngTemplateOutlet="dienteTpl; context: {diente: diente}"></ng-container>
+            </div>
+          }
+          <div class="w-px mx-1" style="background:#D0D8DC;"></div>
+          @for (diente of SUPERIOR_IZQUIERDO; track diente) {
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-[10px] font-mono font-bold" style="color:#4a6870;">{{ diente }}</span>
+              <ng-container *ngTemplateOutlet="dienteTpl; context: {diente: diente}"></ng-container>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="mx-4" style="border-top:2px dashed #D0D8DC;"></div>
+
+      <div class="px-4 py-2 text-xs font-semibold uppercase tracking-widest"
+        style="background:#E2E8EA; color:#4a6870; border-top:1px solid #D0D8DC;">
+        Maxilar Inferior
+      </div>
+      <div class="p-4 overflow-x-auto">
+        <div class="flex justify-center gap-2 min-w-max">
+          @for (diente of INFERIOR_IZQUIERDO; track diente) {
+            <div class="flex flex-col items-center gap-1">
+              <ng-container *ngTemplateOutlet="dienteTpl; context: {diente: diente}"></ng-container>
+              <span class="text-[10px] font-mono font-bold" style="color:#4a6870;">{{ diente }}</span>
+            </div>
+          }
+          <div class="w-px mx-1" style="background:#D0D8DC;"></div>
+          @for (diente of INFERIOR_DERECHO; track diente) {
+            <div class="flex flex-col items-center gap-1">
+              <ng-container *ngTemplateOutlet="dienteTpl; context: {diente: diente}"></ng-container>
+              <span class="text-[10px] font-mono font-bold" style="color:#4a6870;">{{ diente }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#00BCD4;"></span>
+      <span class="text-sm">Cargando odontograma...</span>
+    </div>
+  }
+
+</div>
+
+<!-- TEMPLATE DIENTE -->
+<ng-template #dienteTpl let-diente="diente">
+  <div class="relative">
+    @if (isDienteExtraido(diente)) {
+      <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <span style="color:white; font-size:18px; font-weight:900; line-height:1;">✕</span>
+      </div>
+    }
+    <div class="grid"
+      style="grid-template-columns: 20px 20px 20px; grid-template-rows: 20px 20px 20px; gap:1px;"
+      [style.opacity]="isDienteDeshabilitado(diente) ? '0.6' : '1'">
+      <div></div>
+      <button class="rounded-sm border text-[7px] font-bold transition-all"
+        [class.cursor-not-allowed]="isDienteDeshabilitado(diente)"
+        [style.background]="getCaraColor(diente, 'vestibular')"
+        [style.border-color]="getCaraEstado(diente,'vestibular') === 'sano' ? '#D0D8DC' : getCaraColor(diente,'vestibular')"
+        [style.color]="getCaraEstado(diente,'vestibular') === 'extraccion' ? 'white' : '#162830'"
+        [disabled]="isDienteDeshabilitado(diente)"
+        title="Vestibular"
+        (click)="abrirModal(diente, 'vestibular')">V</button>
+      <div></div>
+      <button class="rounded-sm border text-[7px] font-bold transition-all"
+        [class.cursor-not-allowed]="isDienteDeshabilitado(diente)"
+        [style.background]="getCaraColor(diente, 'mesial')"
+        [style.border-color]="getCaraEstado(diente,'mesial') === 'sano' ? '#D0D8DC' : getCaraColor(diente,'mesial')"
+        [style.color]="getCaraEstado(diente,'mesial') === 'extraccion' ? 'white' : '#162830'"
+        [disabled]="isDienteDeshabilitado(diente)"
+        title="Mesial"
+        (click)="abrirModal(diente, 'mesial')">M</button>
+      <button class="rounded-sm border text-[7px] font-bold transition-all"
+        [class.cursor-not-allowed]="isDienteDeshabilitado(diente)"
+        [style.background]="getCaraColor(diente, 'oclusal')"
+        [style.border-color]="getCaraEstado(diente,'oclusal') === 'sano' ? '#D0D8DC' : getCaraColor(diente,'oclusal')"
+        [style.color]="getCaraEstado(diente,'oclusal') === 'extraccion' ? 'white' : '#162830'"
+        [disabled]="isDienteDeshabilitado(diente)"
+        title="Oclusal"
+        (click)="abrirModal(diente, 'oclusal')">O</button>
+      <button class="rounded-sm border text-[7px] font-bold transition-all"
+        [class.cursor-not-allowed]="isDienteDeshabilitado(diente)"
+        [style.background]="getCaraColor(diente, 'distal')"
+        [style.border-color]="getCaraEstado(diente,'distal') === 'sano' ? '#D0D8DC' : getCaraColor(diente,'distal')"
+        [style.color]="getCaraEstado(diente,'distal') === 'extraccion' ? 'white' : '#162830'"
+        [disabled]="isDienteDeshabilitado(diente)"
+        title="Distal"
+        (click)="abrirModal(diente, 'distal')">D</button>
+      <div></div>
+      <button class="rounded-sm border text-[7px] font-bold transition-all"
+        [class.cursor-not-allowed]="isDienteDeshabilitado(diente)"
+        [style.background]="getCaraColor(diente, 'palatino')"
+        [style.border-color]="getCaraEstado(diente,'palatino') === 'sano' ? '#D0D8DC' : getCaraColor(diente,'palatino')"
+        [style.color]="getCaraEstado(diente,'palatino') === 'extraccion' ? 'white' : '#162830'"
+        [disabled]="isDienteDeshabilitado(diente)"
+        title="Palatino"
+        (click)="abrirModal(diente, 'palatino')">P</button>
+      <div></div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ═══ MODAL CARA ═══ -->
+@if (modalVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarModal()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">
+            Diente {{ dienteActual }}
+            <span class="text-xs font-normal ml-1" style="color:#4a6870;">
+              — {{ capitalize(caraActual) }}
+            </span>
+          </h3>
+          <div class="flex gap-3 mt-2">
+            <button class="text-xs font-semibold pb-1 transition-all"
+              [style.color]="!vistaHistorial ? '#00BCD4' : '#4a6870'"
+              [style.border-bottom]="!vistaHistorial ? '2px solid #00BCD4' : '2px solid transparent'"
+              (click)="vistaHistorial = false">
+              Registrar
+            </button>
+            <button class="text-xs font-semibold pb-1 transition-all"
+              [style.color]="vistaHistorial ? '#00BCD4' : '#4a6870'"
+              [style.border-bottom]="vistaHistorial ? '2px solid #00BCD4' : '2px solid transparent'"
+              (click)="vistaHistorial = true">
+              Historial ({{ historialCara.length }})
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarModal()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+        <!-- Vista Registrar -->
+        @if (!vistaHistorial) {
+
+          <!-- Estado -->
+          <div>
+            <label class="block text-xs font-semibold mb-2" style="color:#9ca3af;">Estado</label>
+            <div class="grid grid-cols-3 gap-2">
+              @for (estado of ESTADOS; track estado.value) {
+                <button
+                  class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all"
+                  [style.background]="formCara.estado === estado.value ? COLORES[estado.value] : 'white'"
+                  [style.border-color]="formCara.estado === estado.value ? COLORES[estado.value] : '#D0D8DC'"
+                  [style.color]="formCara.estado === estado.value
+                    ? (estado.value === 'extraccion' || estado.value === 'endodoncia' ? 'white' : '#162830')
+                    : '#4a6870'"
+                  (click)="formCara.estado = estado.value">
+                  <div class="w-3 h-3 rounded-full flex-shrink-0"
+                    [style.background]="COLORES[estado.value]"
+                    style="border:1px solid rgba(0,0,0,0.1);">
+                  </div>
+                  {{ estado.label }}
+                </button>
+              }
+            </div>
+            @if (['extraccion','corona','sellante'].includes(formCara.estado)) {
+              <div class="mt-2 px-3 py-2 rounded-lg text-xs"
+                style="background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.3); color:#92400e;">
+                ⚠ Esta acción pintará las 5 caras del diente.
+                @if (formCara.estado === 'extraccion') {
+                  El diente quedará deshabilitado.
+                }
+              </div>
+            }
+          </div>
+
+          <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+          <!-- Tratamiento -->
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Tratamiento <span class="font-normal">(opcional)</span>
+            </label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formCara.tratamiento_id"
+              (ngModelChange)="onTratamientoChange($event)">
+              <option [ngValue]="null">— Sin tratamiento —</option>
+              @for (t of getTratamientosUnicos(); track t.tratamiento_id) {
+                <option [ngValue]="t.tratamiento_id">{{ t.tratamiento }}</option>
+              }
+            </select>
+          </div>
+
+          @if (formCara.tratamiento_id) {
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                Subtratamiento
+              </label>
+              <select class="select select-bordered select-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formCara.subtratamiento_id">
+                <option [ngValue]="null">— Seleccionar —</option>
+                @for (st of subtraFiltrados; track st.subtratamiento_id) {
+                  <option [ngValue]="st.subtratamiento_id">{{ st.subtratamiento }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <!-- Notas -->
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Notas <span class="font-normal">(opcional)</span>
+            </label>
+            <textarea class="textarea textarea-bordered textarea-sm w-full resize-none"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              rows="2"
+              placeholder="Observaciones..."
+              [(ngModel)]="formCara.notas">
+            </textarea>
+          </div>
+
+          <!-- ══ SECCIÓN PAGO ══ -->
+          <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+          <!-- Toggle cuotas -->
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg"
+            style="background:#EEF4F5; border:1px solid #D0D8DC;">
+            <div>
+              <p class="text-xs font-semibold" style="color:#162830;">Pago por cuotas</p>
+              <p class="text-xs" style="color:#4a6870;">
+                {{ pagoPorCuotas
+                  ? 'El monto pagado puede ser menor al total'
+                  : 'El monto pagado debe ser igual al total' }}
+              </p>
+            </div>
+            <input type="checkbox" class="toggle toggle-sm"
+              [(ngModel)]="pagoPorCuotas"
+              (ngModelChange)="onToggleCuotas()"/>
+          </div>
+
+          <p class="text-xs font-bold uppercase tracking-widest" style="color:#00BCD4;">
+            Pago 
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                Monto total (Bs)
+              </label>
+              <input type="number" min="0" step="1"
+                class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                placeholder="0"
+                [(ngModel)]="formCara.monto_total"
+                (ngModelChange)="validarMontos()"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                {{ pagoPorCuotas ? 'Cuota inicial (Bs)' : 'Monto pagado (Bs)' }}
+              </label>
+              <input type="number" min="0" step="1"
+                class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                placeholder="0"
+                [(ngModel)]="formCara.monto_pagado"
+                (ngModelChange)="validarMontos()"/>
+            </div>
+          </div>
+
+          
+
+          @if (errorMontos) {
+            <div class="px-3 py-2 rounded-lg text-xs font-medium"
+              style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#dc2626;">
+              ⚠ {{ errorMontos }}
+            </div>
+          }
+          <!-- Indicador estado pago -->
+          @if (formCara.monto_total && formCara.monto_pagado && !errorMontos) {
+            <div class="px-3 py-2 rounded-lg text-xs font-medium"
+              [style.background]="formCara.monto_pagado >= formCara.monto_total
+                ? 'rgba(139,195,74,0.15)' : 'rgba(255,160,0,0.15)'"
+              [style.border]="formCara.monto_pagado >= formCara.monto_total
+                ? '1px solid #8BC34A' : '1px solid #FFA000'"
+              [style.color]="formCara.monto_pagado >= formCara.monto_total
+                ? '#3d5c1a' : '#7a4a00'">
+              {{ formCara.monto_pagado >= formCara.monto_total
+                ? '✓ Pago cancelado'
+                : '⚠ Pendiente — Debe: Bs ' + (formCara.monto_total - formCara.monto_pagado) }}
+            </div>
+          }
+
+          
+          
+
+          @if (errorModal) {
+            <div class="alert alert-error text-sm py-2">
+              <span>⚠ {{ errorModal }}</span>
+            </div>
+          }
+
+          @if (exitoModal) {
+            <div class="alert alert-success text-sm py-2">
+              <span>{{ exitoModal }}</span>
+            </div>
+          }
+
+        }
+
+        <!-- Vista Historial cara -->
+        @if (vistaHistorial) {
+          @if (historialCara.length === 0) {
+            <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+              Sin historial para esta cara
+            </div>
+          }
+          @for (h of historialCara; track h.id) {
+            <div class="rounded-xl overflow-hidden"
+              [style.border]="h.activo ? '1px solid #00BCD4' : '1px solid #D0D8DC'"
+              [style.opacity]="h.activo ? '1' : '0.6'">
+              <div class="flex items-center justify-between px-4 py-2"
+                [style.background]="h.activo ? 'rgba(0,188,212,0.08)' : '#F0F4F5'">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full"
+                    [style.background]="COLORES[h.estado] ?? COLORES['otro']">
+                  </div>
+                  <span class="text-xs font-semibold" style="color:#162830;">
+                    {{ capitalize(h.estado) }}
+                  </span>
+                  @if (h.activo) {
+                    <span class="text-[10px] px-2 py-[1px] rounded-full"
+                      style="background:rgba(0,188,212,0.15); color:#005f6b;">
+                      Actual
+                    </span>
+                  }
+                </div>
+                <span class="text-[10px]" style="color:#4a6870;">
+                  {{ formatFecha(h.creado_en) }}
+                </span>
+              </div>
+              <div class="px-4 py-3 flex flex-col gap-1">
+                @if (h.tratamiento) {
+                  <p class="text-xs" style="color:#162830;">
+                    <span style="color:#4a6870;">Tratamiento: </span>{{ h.tratamiento }}
+                  </p>
+                }
+                @if (h.subtratamiento) {
+                  <p class="text-xs" style="color:#162830;">
+                    <span style="color:#4a6870;">Subtratamiento: </span>{{ h.subtratamiento }}
+                  </p>
+                }
+                @if (h.notas) {
+                  <p class="text-xs" style="color:#162830;">
+                    <span style="color:#4a6870;">Notas: </span>{{ h.notas }}
+                  </p>
+                }
+                @if (h.monto_total) {
+                  <div class="mt-1 pt-1 border-t" style="border-color:#F0F4F5;">
+                    <p class="text-xs" style="color:#162830;">
+                      <span style="color:#4a6870;">Monto total: </span>Bs {{ h.monto_total }}
+                    </p>
+                    <p class="text-xs" style="color:#162830;">
+                      <span style="color:#4a6870;">Monto pagado: </span>Bs {{ h.monto_pagado ?? 0 }}
+                    </p>
+                    <span class="text-[10px] px-2 py-[1px] rounded-full font-medium mt-1 inline-block"
+                      [style.background]="h.estado_pago === 'cancelado'
+                        ? 'rgba(139,195,74,0.15)' : 'rgba(255,160,0,0.15)'"
+                      [style.color]="h.estado_pago === 'cancelado' ? '#3d5c1a' : '#7a4a00'">
+                      {{ h.estado_pago === 'cancelado' ? '✓ Cancelado' : '⚠ Pendiente' }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+      </div>
+
+      <!-- Footer -->
+      @if (!vistaHistorial) {
+        <div class="flex gap-3 px-5 py-4 border-t"
+          style="border-color:#D0D8DC; background:#EEF4F5;">
+          <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+            (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button class="btn btn-sm flex-1 font-semibold"
+            style="background:#00BCD4; color:white; border:none;"
+            (click)="guardarCara()"
+            [disabled]="guardando || !!exitoModal">
+            @if (!guardando) { ✓ Guardar }
+            @if (guardando) {
+              <span class="loading loading-spinner loading-xs"></span>
+            }
+          </button>
+        </div>
+      }
+
+
+      
+    </div>
+  </div>
+}
+
+<!-- ═══ MODAL HISTORIAL CLÍNICO ═══ -->
+@if (modalHistorialVisible) {
+  <div class="fixed inset-0 z-[10001] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarHistorialClinico()">
+
+    <div class="w-full max-w-4xl rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Historial clínico</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ pacienteSeleccionado?.nombre }} · {{ historialClinico.length }} registros
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarHistorialClinico()">✕</button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="flex flex-col sm:flex-row gap-2 px-5 py-3 border-b"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <input type="text"
+          class="input input-bordered input-xs w-full"
+          style="background:white; border-color:#D0D8DC; color:#162830;"
+          placeholder="Filtrar por diente, estado o tratamiento..."
+          [(ngModel)]="filtroHistorial"
+          (ngModelChange)="filtrarHistorial()"/>
+        <select class="select select-bordered select-xs"
+          style="background:white; border-color:#D0D8DC; color:#162830;"
+          [(ngModel)]="filtroEstadoHistorial"
+          (ngModelChange)="filtrarHistorial()">
+          <option value="">Todos los estados</option>
+          @for (e of ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-4 lg:p-5">
+
+        @if (cargandoHistorial) {
+          <div class="flex items-center gap-3 py-8 justify-center opacity-60">
+            <span class="loading loading-spinner loading-sm" style="color:#00BCD4;"></span>
+            <span class="text-sm">Cargando historial...</span>
+          </div>
+        }
+
+        @if (!cargandoHistorial && historialClinicoFiltrado.length === 0) {
+          <div class="text-center py-8 text-sm" style="color:#c5b3b0;">
+            No hay registros en el historial
+          </div>
+        }
+
+        @if (!cargandoHistorial && historialClinicoFiltrado.length > 0) {
+
+          <!-- TABLA — solo desktop -->
+          <div class="hidden lg:block rounded-xl overflow-hidden" style="border:1px solid #D0D8DC;">
+            <table class="table w-full text-sm">
+              <thead style="background:#eae4e2;">
+                <tr>
+                  <th style="color:#4a6870; font-size:11px;">Fecha</th>
+                  <th style="color:#4a6870; font-size:11px;">Diente</th>
+                  <th style="color:#4a6870; font-size:11px;">Cara</th>
+                  <th style="color:#4a6870; font-size:11px;">Estado</th>
+                  <th style="color:#4a6870; font-size:11px;">Tratamiento</th>
+                  <th style="color:#4a6870; font-size:11px;">Notas</th>
+                  <th style="color:#4a6870; font-size:11px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (h of historialClinicoFiltrado; track h.id) {
+                  <tr style="border-bottom:1px solid #F0F4F5;"
+                    [style.opacity]="h.activo ? '1' : '0.5'">
+                    <td class="text-xs" style="color:#4a6870;">{{ formatFecha(h.creado_en) }}</td>
+                    <td>
+                      <span class="text-xs font-mono font-bold px-2 py-1 rounded"
+                        style="background:rgba(0,188,212,0.1); color:#005f6b;">
+                        {{ h.diente }}
+                      </span>
+                    </td>
+                    <td class="text-xs" style="color:#162830;">
+                      @if (h.carasAgrupadas) {
+                        <span class="px-2 py-1 rounded-full text-[10px] font-medium"
+                          style="background:rgba(6,149,168,0.1); color:#005f6b;">5 caras</span>
+                      } @else { {{ capitalize(h.cara) }} }
+                    </td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full flex-shrink-0"
+                          [style.background]="COLORES[h.estado] ?? COLORES['otro']"></div>
+                        <span class="text-xs font-medium" style="color:#162830;">{{ capitalize(h.estado) }}</span>
+                      </div>
+                    </td>
+                    <td class="text-xs" style="color:#162830;">
+                      @if (h.tratamiento) {
+                        <p class="font-medium">{{ h.tratamiento }}</p>
+                        @if (h.subtratamiento) { <p style="color:#4a6870;">{{ h.subtratamiento }}</p> }
+                      } @else { <span style="color:#B0BEC5;">—</span> }
+                    </td>
+                    <td class="text-xs" style="color:#4a6870; max-width:120px;">
+                      <span class="truncate block">{{ h.notas ?? '—' }}</span>
+                    </td>
+                    <td>
+                      <div class="flex items-center gap-1">
+                        <button class="btn btn-xs gap-1 flex items-center"
+                          style="background:rgba(0,188,212,0.1); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+                          (click)="abrirEditarRegistro(h)">
+                          <svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;flex-shrink:0;"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                          Editar
+                        </button>
+                        <button class="btn btn-xs gap-1 flex items-center"
+                          style="background:rgba(239,68,68,0.1); color:#dc2626; border:1px solid rgba(239,68,68,0.3);"
+                          [disabled]="eliminandoRegistro === h.id"
+                          (click)="eliminarRegistroHistorial(h.id)">
+                          @if (eliminandoRegistro !== h.id) {
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:12px;height:12px;flex-shrink:0;"
+                              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Eliminar
+                          }
+                          @if (eliminandoRegistro === h.id) {
+                            <span class="loading loading-spinner loading-xs"></span>
+                          }
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- TARJETAS — solo móvil -->
+          <div class="lg:hidden flex flex-col gap-3">
+            @for (h of historialClinicoFiltrado; track h.id) {
+              <div class="rounded-xl overflow-hidden"
+                [style.border]="h.activo ? '1px solid #00BCD4' : '1px solid #D0D8DC'"
+                [style.opacity]="h.activo ? '1' : '0.6'">
+
+                <div class="flex items-center justify-between px-4 py-2"
+                  [style.background]="h.activo ? 'rgba(0,188,212,0.08)' : '#F0F4F5'">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-mono font-bold px-2 py-[2px] rounded"
+                      style="background:rgba(0,188,212,0.1); color:#005f6b;">
+                      {{ h.diente }}
+                    </span>
+                    <span class="text-xs" style="color:#4a6870;">
+                      {{ h.carasAgrupadas ? '5 caras' : capitalize(h.cara) }}
+                    </span>
+                    @if (h.activo) {
+                      <span class="text-[10px] px-2 py-[1px] rounded-full"
+                        style="background:rgba(0,188,212,0.15); color:#005f6b;">Actual</span>
+                    }
+                  </div>
+                  <span class="text-[10px] flex-shrink-0 ml-2" style="color:#4a6870;">
+                    {{ formatFecha(h.creado_en) }}
+                  </span>
+                </div>
+
+                <div class="px-4 py-3 flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full flex-shrink-0"
+                      [style.background]="COLORES[h.estado] ?? COLORES['otro']"></div>
+                    <span class="text-xs font-medium" style="color:#162830;">{{ capitalize(h.estado) }}</span>
+                  </div>
+
+                  @if (h.tratamiento) {
+                    <p class="text-xs" style="color:#162830;">
+                      <span style="color:#4a6870;">Tratamiento: </span>
+                      <span class="font-medium">{{ h.tratamiento }}</span>
+                      @if (h.subtratamiento) { · <span style="color:#4a6870;">{{ h.subtratamiento }}</span> }
+                    </p>
+                  }
+
+                  @if (h.notas) {
+                    <p class="text-xs" style="color:#4a6870;">📝 {{ h.notas }}</p>
+                  }
+
+                  <div class="flex gap-2 mt-1">
+                    <button class="btn btn-xs flex-1"
+                      style="background:rgba(0,188,212,0.1); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+                      (click)="abrirEditarRegistro(h)">
+                      ✏ Editar
+                    </button>
+                    <button class="btn btn-xs flex-1"
+                      style="background:rgba(239,68,68,0.1); color:#dc2626; border:1px solid rgba(239,68,68,0.3);"
+                      [disabled]="eliminandoRegistro === h.id"
+                      (click)="eliminarRegistroHistorial(h.id)">
+                      @if (eliminandoRegistro !== h.id) { ✕ Eliminar }
+                      @if (eliminandoRegistro === h.id) {
+                        <span class="loading loading-spinner loading-xs"></span>
+                      }
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            }
+          </div>
+
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost" style="color:#4a6870;"
+          (click)="cerrarHistorialClinico()">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!--***********************************************************************************-->
+<!-- ═══ MODAL EDITAR REGISTRO HISTORIAL ═══ -->
+@if (modalEditarRegistroVisible) {
+  <div class="fixed inset-0 z-[10002] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarEditarRegistro()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">
+            Editar registro
+          </h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            Diente {{ registroSeleccionado?.diente }} —
+            {{ capitalize(registroSeleccionado?.cara) }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarEditarRegistro()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+        <!-- Estado -->
+        <div>
+          <label class="block text-xs font-semibold mb-2" style="color:#9ca3af;">Estado</label>
+          <div class="grid grid-cols-3 gap-2">
+            @for (estado of ESTADOS; track estado.value) {
+              <button
+                class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all"
+                [style.background]="formEditarRegistro.estado === estado.value
+                  ? COLORES[estado.value] : 'white'"
+                [style.border-color]="formEditarRegistro.estado === estado.value
+                  ? COLORES[estado.value] : '#D0D8DC'"
+                [style.color]="formEditarRegistro.estado === estado.value
+                  ? (estado.value === 'extraccion' || estado.value === 'endodoncia'
+                    ? 'white' : '#162830')
+                  : '#4a6870'"
+                (click)="formEditarRegistro.estado = estado.value">
+                <div class="w-3 h-3 rounded-full flex-shrink-0"
+                  [style.background]="COLORES[estado.value]"
+                  style="border:1px solid rgba(0,0,0,0.1);">
+                </div>
+                {{ estado.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+        <!-- Tratamiento -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Tratamiento <span class="font-normal">(opcional)</span>
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            [(ngModel)]="formEditarRegistro.tratamiento_id"
+            (ngModelChange)="onTratamientoChangeEditar($event)">
+            <option [ngValue]="null">— Sin tratamiento —</option>
+            @for (t of getTratamientosUnicosEditar(); track t.tratamiento_id) {
+              <option [ngValue]="t.tratamiento_id">{{ t.tratamiento }}</option>
+            }
+          </select>
+        </div>
+
+        @if (formEditarRegistro.tratamiento_id) {
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Subtratamiento
+            </label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditarRegistro.subtratamiento_id">
+              <option [ngValue]="null">— Seleccionar —</option>
+              @for (st of subtraFiltradosEditar; track st.subtratamiento_id) {
+                <option [ngValue]="st.subtratamiento_id">{{ st.subtratamiento }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Notas -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Notas <span class="font-normal">(opcional)</span>
+          </label>
+          <textarea class="textarea textarea-bordered textarea-sm w-full resize-none"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            rows="2"
+            [(ngModel)]="formEditarRegistro.notas">
+          </textarea>
+        </div>
+
+        @if (errorEdicion) {
+          <div class="alert alert-error text-sm py-2">
+            <span>⚠ {{ errorEdicion }}</span>
+          </div>
+        }
+
+        @if (exitoEdicion) {
+          <div class="alert alert-success text-sm py-2">
+            <span>{{ exitoEdicion }}</span>
+          </div>
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarEditarRegistro()" [disabled]="guardandoEdicion">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#00BCD4; color:white; border:none;"
+          (click)="guardarEdicionRegistro()"
+          [disabled]="guardandoEdicion || !!exitoEdicion">
+          @if (!guardandoEdicion) { ✓ Guardar cambios }
+          @if (guardandoEdicion) {
+            <span class="loading loading-spinner loading-xs"></span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!--Modal Imprimir-->
+@if (modalImprimirVisible) {
+  <div class="fixed inset-0 z-[10003] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarModalImprimir()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Imprimir historia clínica</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ pacienteSeleccionado?.nombre }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarModalImprimir()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 flex flex-col gap-4">
+
+        <!-- Sucursal -->
+        <div class="px-4 py-3 rounded-xl"
+          style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+          <p class="text-xs" style="color:#4a6870;">Sucursal</p>
+          <p class="text-sm font-semibold" style="color:#162830;">
+            {{ getSucursalNombre(sucursalImprimir) }}
+          </p>
+        </div>
+
+          <!-- ← botón imprimir TODO -->
+          <button class="btn btn-sm flex-1 font-semibold"
+            style="background:rgba(13,112,107,0.15); color:#0a5955; border:1px solid rgba(13,112,107,0.3);"
+            (click)="generarPDFTodo()"
+            [disabled]="generandoPDF">
+            @if (!generandoPDF) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Imprimir todo
+            }
+            @if (generandoPDF) {
+              <span class="loading loading-spinner loading-xs"></span>
+            }
+          </button>
+
+        <!-- Rango de fechas -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Fecha desde
+            </label>
+            <input type="date"
+              class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="fechaDesde"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Fecha hasta
+            </label>
+            <input type="date"
+              class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="fechaHasta"/>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarModalImprimir()">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:rgba(13, 112, 107, 0.801); color:white; border:none;"
+          (click)="generarPDF()"
+          [disabled]="generandoPDF">
+          @if (!generandoPDF) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Generar PDF
+          }
+          @if (generandoPDF) {
+            <span class="loading loading-spinner loading-xs"></span>
+            Generando...
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+<!-- ═══ MODAL FICHA CLÍNICA ═══ -->
+
+@if (modalFichaClinicaVisible) {
+  <div class="fixed inset-0 z-[10002] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarFichaClinica()">
+
+    <div class="w-full max-w-lg rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Ficha clínica</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ pacienteSeleccionado?.nombre }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarFichaClinica()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-5">
+
+        @if (cargandoFicha) {
+          <div class="flex items-center gap-3 py-8 justify-center opacity-60">
+            <span class="loading loading-spinner loading-sm" style="color:#00BCD4;"></span>
+            <span class="text-sm">Cargando ficha clínica...</span>
+          </div>
+        }
+
+        @if (!cargandoFicha && !fichaClinica) {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay ficha clínica registrada para este paciente
+          </div>
+        }
+
+        @if (!cargandoFicha && fichaClinica) {
+          <div class="flex flex-col gap-3">
+
+            <!-- Grupo sanguíneo -->
+            <div class="flex items-center justify-between px-4 py-3 rounded-xl"
+              style="background:#EEF4F5; border:1px solid #D0D8DC;">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style="background:rgba(239,68,68,0.15);">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#dc2626;"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#4a6870;">Grupo sanguíneo</p>
+              </div>
+              <span class="text-sm font-bold px-3 py-1 rounded-full"
+                style="background:rgba(239,68,68,0.1); color:#dc2626;">
+                {{ fichaClinica.grupo_sanguineo ?? '—' }}
+              </span>
+            </div>
+
+            <!-- Enfermedad sistémica -->
+            <div class="rounded-xl overflow-hidden"
+              [style.border]="fichaClinica.enfermedad_sistemica
+                ? '1px solid rgba(255,160,0,0.4)'
+                : '1px solid #D0D8DC'">
+              <div class="flex items-center gap-3 px-4 py-2"
+                [style.background]="fichaClinica.enfermedad_sistemica
+                  ? 'rgba(255,160,0,0.08)' : '#EEF4F5'">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  [style.background]="fichaClinica.enfermedad_sistemica
+                    ? 'rgba(255,160,0,0.2)' : 'rgba(0,188,212,0.1)'">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    [style.color]="fichaClinica.enfermedad_sistemica ? '#FFA000' : '#00BCD4'"
+                    style="width:14px;height:14px;"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#162830;">Enfermedad sistémica</p>
+              </div>
+              <div class="px-4 py-2">
+                <p class="text-sm" style="color:#162830;">
+                  {{ fichaClinica.enfermedad_sistemica ?? 'Ninguna' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Intervención quirúrgica -->
+            <div class="rounded-xl overflow-hidden"
+              [style.border]="fichaClinica.intervencion_quirurgica
+                ? '1px solid rgba(139,92,246,0.4)'
+                : '1px solid #D0D8DC'">
+              <div class="flex items-center gap-3 px-4 py-2"
+                [style.background]="fichaClinica.intervencion_quirurgica
+                  ? 'rgba(139,92,246,0.08)' : '#EEF4F5'">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  [style.background]="fichaClinica.intervencion_quirurgica
+                    ? 'rgba(139,92,246,0.2)' : 'rgba(0,188,212,0.1)'">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    [style.color]="fichaClinica.intervencion_quirurgica ? '#8B5CF6' : '#00BCD4'"
+                    style="width:14px;height:14px;"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#162830;">Intervención quirúrgica</p>
+              </div>
+              <div class="px-4 py-2">
+                <p class="text-sm" style="color:#162830;">
+                  {{ fichaClinica.intervencion_quirurgica ?? 'Ninguna' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Hemorragia anormal -->
+            <div class="flex items-center justify-between px-4 py-3 rounded-xl"
+              [style.background]="fichaClinica.hemorragia_anormal
+                ? 'rgba(239,68,68,0.08)' : '#EEF4F5'"
+              [style.border]="fichaClinica.hemorragia_anormal
+                ? '1px solid rgba(239,68,68,0.3)' : '1px solid #D0D8DC'">
+              <div class="flex items-center gap-3">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  [style.background]="fichaClinica.hemorragia_anormal
+                    ? 'rgba(239,68,68,0.15)' : 'rgba(0,188,212,0.1)'">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    [style.color]="fichaClinica.hemorragia_anormal ? '#dc2626' : '#00BCD4'"
+                    style="width:14px;height:14px;"
+                    fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                      clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#162830;">Hemorragia anormal</p>
+              </div>
+              <span class="text-xs font-bold px-3 py-1 rounded-full"
+                [style.background]="fichaClinica.hemorragia_anormal
+                  ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'"
+                [style.color]="fichaClinica.hemorragia_anormal ? '#dc2626' : '#15803d'">
+                {{ fichaClinica.hemorragia_anormal ? '⚠ Sí' : '✓ No' }}
+              </span>
+            </div>
+
+            <!-- Alergia a medicamentos -->
+            <div class="rounded-xl overflow-hidden"
+              [style.border]="fichaClinica.alergia_medicamentos
+                ? '1px solid rgba(239,68,68,0.4)'
+                : '1px solid #D0D8DC'">
+              <div class="flex items-center gap-3 px-4 py-2"
+                [style.background]="fichaClinica.alergia_medicamentos
+                  ? 'rgba(239,68,68,0.08)' : '#EEF4F5'">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  [style.background]="fichaClinica.alergia_medicamentos
+                    ? 'rgba(239,68,68,0.15)' : 'rgba(0,188,212,0.1)'">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    [style.color]="fichaClinica.alergia_medicamentos ? '#dc2626' : '#00BCD4'"
+                    style="width:14px;height:14px;"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#162830;">Alergia a medicamentos</p>
+              </div>
+              <div class="px-4 py-2">
+                <p class="text-sm" style="color:#162830;">
+                  {{ fichaClinica.alergia_medicamentos ?? 'Ninguna' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Medicación actual -->
+            <div class="rounded-xl overflow-hidden"
+              [style.border]="fichaClinica.medicacion_actual
+                ? '1px solid rgba(0,188,212,0.4)'
+                : '1px solid #D0D8DC'">
+              <div class="flex items-center gap-3 px-4 py-2"
+                [style.background]="fichaClinica.medicacion_actual
+                  ? 'rgba(0,188,212,0.08)' : '#EEF4F5'">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                  style="background:rgba(0,188,212,0.1);">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#00BCD4;"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold" style="color:#162830;">Medicación actual</p>
+              </div>
+              <div class="px-4 py-2">
+                <p class="text-sm" style="color:#162830;">
+                  {{ fichaClinica.medicacion_actual ?? 'Ninguna' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            @if (fichaClinica.observaciones) {
+              <div class="rounded-xl overflow-hidden"
+                style="border:1px solid #D0D8DC;">
+                <div class="flex items-center gap-3 px-4 py-2"
+                  style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+                  <p class="text-xs font-semibold" style="color:#162830;">Observaciones</p>
+                </div>
+                <div class="px-4 py-3">
+                  <p class="text-sm" style="color:#162830; line-height:1.6;">
+                    {{ fichaClinica.observaciones }}
+                  </p>
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost" style="color:#4a6870;"
+          (click)="cerrarFichaClinica()">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+
+

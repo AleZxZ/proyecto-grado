@@ -1,0 +1,464 @@
+<div class="min-h-screen p-4 lg:p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl lg:text-2xl font-bold" style="color:#162830;">Pagos</h1>
+      <p class="text-xs lg:text-sm mt-1" style="color:#4a6870;">
+        Gestión de cobros y deudas de pacientes
+      </p>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="rounded-2xl p-3 lg:p-4"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+      <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Con deuda</p>
+      <p class="text-xl lg:text-2xl font-bold mt-1" style="color:#FFA000;">
+        {{ resumen.length }}
+      </p>
+    </div>
+    <div class="rounded-2xl p-3 lg:p-4"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+      <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Deuda total</p>
+      <p class="text-lg lg:text-2xl font-bold mt-1" style="color:#EF4444;">
+        Bs {{ deudaTotal }}
+      </p>
+    </div>
+    <div class="rounded-2xl p-3 lg:p-4"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Esta semana</p>
+        <button class="btn btn-xs btn-ghost p-1" style="color:#4a6870;"
+          (click)="mostrarMonto = !mostrarMonto">
+          <lucide-icon [img]="mostrarMonto ? Eye : EyeOff" size="14"></lucide-icon>
+        </button>
+      </div>
+      <p class="text-lg lg:text-2xl font-bold mt-1" style="color:#22C55E;">
+        @if (mostrarMonto) { Bs {{ totalCobrado }} }
+        @else { ***** }
+      </p>
+    </div>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="mb-4">
+    <input type="text"
+      class="input input-bordered input-sm w-full lg:max-w-sm"
+      style="background:white; border-color:#D0D8DC; color:#162830;"
+      placeholder="Buscar paciente..."
+      [(ngModel)]="busqueda"
+      (ngModelChange)="filtrar()"/>
+  </div>
+
+  <!-- LOADING -->
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#00BCD4;"></span>
+      <span class="text-sm">Cargando pagos...</span>
+    </div>
+  }
+
+  <!-- TABLA — solo desktop -->
+  @if (!cargando) {
+    <div class="hidden lg:block rounded-2xl overflow-hidden"
+      style="border:1px solid #D0D8DC; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <table class="table w-full">
+        <thead style="background:#E2E8EA;">
+          <tr>
+            <th style="color:#4a6870; font-size:11px;">Paciente</th>
+            <th style="color:#4a6870; font-size:11px;">Tratamientos</th>
+            <th style="color:#4a6870; font-size:11px;">Total deuda</th>
+            <th style="color:#4a6870; font-size:11px;">Ya pagado</th>
+            <th style="color:#4a6870; font-size:11px;">Saldo</th>
+            <th style="color:#4a6870; font-size:11px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of resumenFiltrado; track p.paciente_id) {
+            <tr style="border-bottom:1px solid #F0F4F5;">
+              <td>
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                    style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700; font-size:13px;">
+                    {{ p.paciente_nombre?.charAt(0) }}
+                  </div>
+                  <span class="text-sm font-medium" style="color:#162830;">
+                    {{ p.paciente_nombre }}
+                  </span>
+                </div>
+              </td>
+              <td class="text-xs font-mono" style="color:#4a6870;">
+                {{ p.total_tratamientos }} pendiente(s)
+              </td>
+              <td class="text-xs font-mono font-bold" style="color:#162830;">
+                Bs {{ p.monto_total }}
+              </td>
+              <td class="text-xs font-mono" style="color:#22C55E;">
+                Bs {{ p.monto_pagado }}
+              </td>
+              <td>
+                <span class="text-xs font-mono font-bold px-2 py-1 rounded-full"
+                  style="background:rgba(239,68,68,0.1); color:#EF4444;">
+                  Bs {{ p.deuda_total }}
+                </span>
+              </td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <button class="btn btn-xs font-semibold"
+                    style="background:rgba(0,188,212,0.15); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+                    (click)="abrirAbonar(p)">
+                    Abonar
+                  </button>
+                  <button class="btn btn-xs"
+                    style="background:rgba(139,92,246,0.15); color:#5b21b6; border:1px solid rgba(139,92,246,0.3);"
+                    (click)="abrirVer(p)">
+                    Ver
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="text-center py-8 text-sm" style="color:#B0BEC5;">
+                No hay pacientes con deuda pendiente
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TARJETAS — solo móvil -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @for (p of resumenFiltrado; track p.paciente_id) {
+        <div class="rounded-2xl overflow-hidden"
+          style="border:1px solid #D0D8DC; background:white;">
+
+          <!-- Header tarjeta -->
+          <div class="flex items-center justify-between px-4 py-3"
+            style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700;">
+                {{ p.paciente_nombre?.charAt(0) }}
+              </div>
+              <p class="font-semibold text-sm" style="color:#162830;">
+                {{ p.paciente_nombre }}
+              </p>
+            </div>
+            <span class="text-xs font-mono font-bold px-2 py-1 rounded-full flex-shrink-0"
+              style="background:rgba(239,68,68,0.1); color:#EF4444;">
+              Bs {{ p.deuda_total }}
+            </span>
+          </div>
+
+          <!-- Info montos -->
+          <div class="px-4 py-3 grid grid-cols-3 gap-2 text-xs border-b"
+            style="border-color:#F0F4F5;">
+            <div>
+              <p style="color:#4a6870;">Total</p>
+              <p class="font-bold" style="color:#162830;">Bs {{ p.monto_total }}</p>
+            </div>
+            <div>
+              <p style="color:#4a6870;">Pagado</p>
+              <p class="font-medium" style="color:#22C55E;">Bs {{ p.monto_pagado }}</p>
+            </div>
+            <div>
+              <p style="color:#4a6870;">Tratamientos</p>
+              <p class="font-medium" style="color:#162830;">{{ p.total_tratamientos }}</p>
+            </div>
+          </div>
+
+          <!-- Barra progreso -->
+          <div class="px-4 py-2">
+            <div class="w-full h-1.5 rounded-full" style="background:#D0D8DC;">
+              <div class="h-1.5 rounded-full" style="background:#00BCD4;"
+                [style.width.%]="(p.monto_pagado / p.monto_total) * 100">
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex gap-2 px-4 pb-3">
+            <button class="btn btn-sm flex-1 font-semibold"
+              style="background:rgba(0,188,212,0.15); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+              (click)="abrirAbonar(p)">
+              Abonar
+            </button>
+            <button class="btn btn-sm flex-1"
+              style="background:rgba(139,92,246,0.15); color:#5b21b6; border:1px solid rgba(139,92,246,0.3);"
+              (click)="abrirVer(p)">
+              Ver detalle
+            </button>
+          </div>
+
+        </div>
+      } @empty {
+        <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+          No hay pacientes con deuda pendiente
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- MODAL ABONAR — sin cambios, ya es responsivo -->
+@if (modalAbonarVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 lg:p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarAbonar()">
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Registrar abono</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ pacienteSeleccionado?.paciente_nombre }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarAbonar()">✕</button>
+      </div>
+
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+        <div class="rounded-xl p-4"
+          style="background:#EEF4F5; border:1px solid #D0D8DC;">
+          <div class="flex justify-between text-xs mb-2">
+            <span style="color:#4a6870;">Total tratamientos</span>
+            <span class="font-bold" style="color:#162830;">Bs {{ pacienteSeleccionado?.monto_total }}</span>
+          </div>
+          <div class="flex justify-between text-xs mb-2">
+            <span style="color:#4a6870;">Ya pagado</span>
+            <span class="font-medium" style="color:#22C55E;">Bs {{ pacienteSeleccionado?.monto_pagado }}</span>
+          </div>
+          <div class="w-full h-px my-2" style="background:#D0D8DC;"></div>
+          <div class="flex justify-between text-sm">
+            <span class="font-semibold" style="color:#EF4444;">Deuda pendiente</span>
+            <span class="font-bold" style="color:#EF4444;">Bs {{ pacienteSeleccionado?.deuda_total }}</span>
+          </div>
+          <div class="mt-3">
+            <div class="w-full h-2 rounded-full" style="background:#D0D8DC;">
+              <div class="h-2 rounded-full" style="background:#00BCD4;"
+                [style.width.%]="pacienteSeleccionado
+                  ? (pacienteSeleccionado.monto_pagado / pacienteSeleccionado.monto_total) * 100 : 0">
+              </div>
+            </div>
+            <p class="text-[10px] mt-1 text-right" style="color:#4a6870;">
+              {{ pacienteSeleccionado
+                ? ((pacienteSeleccionado.monto_pagado / pacienteSeleccionado.monto_total) * 100).toFixed(0)
+                : 0 }}% pagado
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Monto a abonar (Bs)
+          </label>
+          <input type="number" min="1" step="1"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="0" [(ngModel)]="montoAbono"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Notas <span class="font-normal">(opcional)</span>
+          </label>
+          <input type="text"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Pago en efectivo..."
+            [(ngModel)]="notasAbono"/>
+        </div>
+
+        @if (errorAbono) {
+          <div class="alert alert-error text-sm py-2">
+            <span>⚠ {{ errorAbono }}</span>
+          </div>
+        }
+        @if (exitoAbono) {
+          <div class="alert alert-success text-sm py-2">
+            <span>{{ exitoAbono }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="flex gap-2 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost" style="color:#4a6870;"
+          (click)="cerrarAbonar()" [disabled]="guardando">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 text-xs"
+          style="background:rgba(0,188,212,0.15); color:#005f6b; border:1px solid rgba(0,188,212,0.3);"
+          (click)="pagarTodo()"
+          [disabled]="guardando || !!exitoAbono">
+          Todo (Bs {{ pacienteSeleccionado?.deuda_total }})
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#00BCD4; color:white; border:none;"
+          (click)="abonar()"
+          [disabled]="guardando || !!exitoAbono">
+          @if (!guardando) { ✓ Abonar }
+          @if (guardando) {
+            <span class="loading loading-spinner loading-xs"></span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL VER PAGOS -->
+@if (modalVerVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 lg:p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarVer()">
+    <div class="w-full max-w-2xl rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Detalle de pagos</h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ pacienteSeleccionado?.paciente_nombre }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarVer()">✕</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b px-5 overflow-x-auto"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="px-4 py-3 text-xs font-semibold transition-all flex-shrink-0"
+          [style.color]="tabVer === 'tratamientos' ? '#00BCD4' : '#4a6870'"
+          [style.border-bottom]="tabVer === 'tratamientos' ? '2px solid #00BCD4' : '2px solid transparent'"
+          (click)="tabVer = 'tratamientos'">
+          Tratamientos
+        </button>
+        <button class="px-4 py-3 text-xs font-semibold transition-all flex-shrink-0"
+          [style.color]="tabVer === 'abonos' ? '#00BCD4' : '#4a6870'"
+          [style.border-bottom]="tabVer === 'abonos' ? '2px solid #00BCD4' : '2px solid transparent'"
+          (click)="tabVer = 'abonos'">
+          Abonos ({{ historialAbonos.length }})
+        </button>
+      </div>
+
+      <div class="overflow-y-auto p-4 lg:p-5 flex flex-col gap-3">
+
+        @if (cargandoDetalle) {
+          <div class="flex items-center gap-3 py-8 justify-center opacity-60">
+            <span class="loading loading-spinner loading-sm" style="color:#00BCD4;"></span>
+          </div>
+        }
+
+        @if (!cargandoDetalle && tabVer === 'tratamientos') {
+          @for (p of pagosPaciente; track p.id) {
+            <div class="rounded-xl"
+              [style.border]="p.estado === 'cancelado' ? '1px solid #22C55E' : '1px solid #FFA000'"
+              [style.opacity]="p.estado === 'cancelado' ? '0.7' : '1'">
+              <div class="flex items-center justify-between px-4 py-2"
+                [style.background]="p.estado === 'cancelado' ? 'rgba(34,197,94,0.08)' : 'rgba(255,160,0,0.08)'">
+                <span class="text-xs font-semibold truncate" style="color:#162830;">
+                  {{ p.concepto }}
+                </span>
+                <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                  @if (p.fecha_tratamiento) {
+                    <span class="text-[10px] hidden sm:block" style="color:#4a6870;">
+                      {{ formatFecha(p.fecha_tratamiento) }}
+                    </span>
+                  }
+                  <span class="text-[10px] px-2 py-1 rounded-full font-medium"
+                    [style.background]="p.estado === 'cancelado' ? 'rgba(34,197,94,0.15)' : 'rgba(255,160,0,0.15)'"
+                    [style.color]="p.estado === 'cancelado' ? '#15803d' : '#7a4a00'">
+                    {{ p.estado === 'cancelado' ? '✓' : '⚠' }}
+                  </span>
+                </div>
+              </div>
+              <div class="px-4 py-3 grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p style="color:#4a6870;">Total</p>
+                  <p class="font-bold" style="color:#162830;">Bs {{ p.monto_total }}</p>
+                </div>
+                <div>
+                  <p style="color:#4a6870;">Pagado</p>
+                  <p class="font-medium" style="color:#22C55E;">Bs {{ p.monto_pagado }}</p>
+                </div>
+                <div>
+                  <p style="color:#4a6870;">Saldo</p>
+                  <p class="font-bold" [style.color]="p.saldo > 0 ? '#EF4444' : '#22C55E'">
+                    Bs {{ p.saldo }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+              No hay tratamientos registrados
+            </div>
+          }
+        }
+
+        @if (!cargandoDetalle && tabVer === 'abonos') {
+          @for (a of historialAbonos; track a.id) {
+            <div class="rounded-xl" style="border:1px solid #D0D8DC;">
+              <div class="flex items-center justify-between px-4 py-2"
+                style="background:rgba(0,188,212,0.08); border-bottom:1px solid #D0D8DC;">
+                <span class="text-xs font-semibold" style="color:#005f6b;">
+                  {{ formatFecha(a.creado_en) }}
+                </span>
+                <span class="text-sm font-bold" style="color:#00BCD4;">
+                  Bs {{ a.monto }}
+                </span>
+              </div>
+              <div class="px-4 py-3 flex flex-col gap-1">
+                @if (a.notas) {
+                  <p class="text-xs" style="color:#4a6870;">{{ a.notas }}</p>
+                }
+                <p class="text-[10px] font-semibold uppercase tracking-widest mt-1"
+                  style="color:#4a6870;">Distribuido en:</p>
+                @for (d of parseDetalle(a.detalle); track d.pago_id) {
+                  <div class="flex justify-between items-start text-xs px-2 py-2 rounded"
+                    style="background:#F0F4F5;">
+                    <div class="flex flex-col gap-[2px] min-w-0 mr-2">
+                      <span class="font-medium truncate" style="color:#162830;">{{ d.concepto }}</span>
+                      @if (d.tratamiento) {
+                        <span class="truncate" style="color:#4a6870;">{{ d.tratamiento }}
+                          @if (d.subtratamiento) { · {{ d.subtratamiento }} }
+                        </span>
+                      }
+                    </div>
+                    <span class="font-mono font-bold flex-shrink-0" style="color:#00BCD4;">
+                      Bs {{ d.monto }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+              No hay abonos registrados
+            </div>
+          }
+        }
+
+      </div>
+
+      <div class="flex justify-end px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost" style="color:#4a6870;"
+          (click)="cerrarVer()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

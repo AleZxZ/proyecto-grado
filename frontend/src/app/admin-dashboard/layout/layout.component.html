@@ -1,0 +1,464 @@
+<div class="flex h-screen overflow-hidden" style="background:#F8F9FA;">
+
+  <!-- SIDEBAR — solo desktop -->
+  <aside class="hidden lg:flex flex-col w-64 flex-shrink-0 border-r"
+    style="background:#162830; border-color:#1e3540;">
+
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b" style="border-color:#1e3540;">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+            style="background:rgba(0,188,212,0.3);">
+            <span style="color:white; font-size:16px;">🦷</span>
+          </div>
+          <div>
+            <p class="font-bold text-sm" style="color:white;">Dental Escobar</p>
+            <p class="text-[10px]" style="color:rgba(255,255,255,0.5);">
+              Panel de administración
+            </p>
+          </div>
+        </div>
+        <!-- Campana -->
+        <button class="relative btn btn-sm btn-circle btn-ghost"
+          style="color:rgba(255,255,255,0.7);"
+          (click)="toggleNotif()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          @if (countSolicitudes > 0) {
+            <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
+              style="background:#EF4444; color:white;">
+              {{ countSolicitudes }}
+            </span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Usuario -->
+    <div class="px-5 py-4 border-b" style="border-color:#1e3540; " routerLink="/dashboard/perfil">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+          style="background:rgba(0,188,212,0.3); color:white; font-weight:700;">
+          {{ usuario?.nombre?.charAt(0) }}
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-sm font-semibold truncate" style="color:white;">
+            {{ usuario?.nombre }}
+          </p>
+          <p class="text-[10px] truncate" style="color:rgba(255,255,255,0.5);">
+            {{ usuario?.rol }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menú -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+      @for (item of MENU_FILTRADO; track item.ruta) {
+        <a [routerLink]="item.ruta"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
+          [style.background]="esRutaActiva(item.ruta) ? 'rgba(0,188,212,0.2)' : 'transparent'"
+          [style.color]="esRutaActiva(item.ruta) ? 'white' : 'rgba(255,255,255,0.6)'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+          </svg>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <!-- Logout -->
+    <div class="px-3 py-4 border-t" style="border-color:#1e3540;">
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm w-full transition-all"
+        style="color:rgba(255,255,255,0.5);"
+        (click)="logout()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- CONTENIDO -->
+  <main class="flex-1 overflow-y-auto pb-20 lg:pb-0">
+
+    <!-- HEADER MÓVIL -->
+    <div class="lg:hidden flex items-center justify-between px-4 py-3 border-b sticky top-0 z-40"
+      style="background:#162830; border-color:#1e3540;">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+          style="background:rgba(0,188,212,0.3);">
+          <span style="font-size:14px;">🦷</span>
+        </div>
+        <p class="font-bold text-sm" style="color:white;">Dental Escobar</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Campana móvil -->
+        <button class="relative btn btn-sm btn-circle btn-ghost"
+          style="color:rgba(255,255,255,0.7);"
+          (click)="toggleNotif()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          @if (countSolicitudes > 0) {
+            <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
+              style="background:#EF4444; color:white;">
+              {{ countSolicitudes }}
+            </span>
+          }
+        </button>
+        <!-- Avatar -->
+        <div class="w-8 h-8 rounded-full flex items-center justify-center"
+          style="background:rgba(0,188,212,0.3); color:white; font-weight:700; font-size:13px;"
+          routerLink="/dashboard/perfil"
+          >
+          {{ usuario?.nombre?.charAt(0) }}
+        </div>
+      </div>
+    </div>
+
+    <router-outlet/>
+  </main>
+
+</div>
+
+<!-- NAVBAR INFERIOR MÓVIL -->
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t"
+  style="background:#162830; border-color:#1e3540;">
+  <div class="flex items-center justify-around px-2 py-2">
+
+    @for (item of MENU_MOVIL; track item.ruta) {
+      <a [routerLink]="item.ruta"
+        class="flex flex-col items-center gap-[2px] px-2 py-1 rounded-xl transition-all"
+        [style.color]="esRutaActiva(item.ruta) ? 'white' : 'rgba(255,255,255,0.5)'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+        </svg>
+        <span class="text-[9px] font-medium">{{ item.label }}</span>
+        @if (esRutaActiva(item.ruta)) {
+          <div class="w-1 h-1 rounded-full" style="background:#00BCD4;"></div>
+        }
+      </a>
+    }
+
+    <!-- Más -->
+    <button class="flex flex-col items-center gap-[2px] px-2 py-1 rounded-xl"
+      style="color:rgba(255,255,255,0.5);"
+      (click)="menuMovilVisible = !menuMovilVisible">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <span class="text-[9px] font-medium">Más</span>
+    </button>
+
+  </div>
+</nav>
+
+<!-- MENÚ COMPLETO MÓVIL -->
+@if (menuMovilVisible) {
+  <div class="lg:hidden fixed inset-0 z-[9998]"
+    (click)="menuMovilVisible = false"></div>
+  <div class="lg:hidden fixed bottom-16 left-0 right-0 z-[9999] mx-3 rounded-2xl overflow-hidden shadow-2xl"
+    style="background:#162830; border:1px solid #1e3540;">
+
+    <div class="px-4 py-3 border-b" style="border-color:#1e3540;">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center"
+          style="background:rgba(0,188,212,0.3); color:white; font-weight:700;">
+          {{ usuario?.nombre?.charAt(0) }}
+        </div>
+        <div>
+          <p class="text-sm font-semibold" style="color:white;">{{ usuario?.nombre }}</p>
+          <p class="text-[10px]" style="color:rgba(255,255,255,0.5);">{{ usuario?.rol }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-3 flex flex-col gap-1">
+      @for (item of MENU_EXTRA_FILTRADO; track item.ruta) {
+        <a [routerLink]="item.ruta"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium"
+          [style.background]="esRutaActiva(item.ruta) ? 'rgba(0,188,212,0.2)' : 'transparent'"
+          [style.color]="esRutaActiva(item.ruta) ? 'white' : 'rgba(255,255,255,0.7)'"
+          (click)="menuMovilVisible = false">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+          </svg>
+          {{ item.label }}
+        </a>
+      }
+
+      <div class="h-px my-1" style="background:#1e3540;"></div>
+
+      <button class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm w-full"
+        style="color:rgba(239,68,68,0.8);"
+        (click)="logout()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Panel notificaciones flotante -->
+@if (notifVisible) {
+  <div class="fixed inset-0 z-[9999]" (click)="cerrarNotif()"></div>
+  <div class="fixed z-[10000] top-16 right-2 left-2 lg:top-4 lg:right-4 lg:left-auto lg:w-96 rounded-2xl overflow-hidden shadow-2xl"
+    style="background:#1a3040; border:1px solid #1e3540; max-height:80vh; display:flex; flex-direction:column;">
+
+    <div class="flex items-center justify-between px-4 py-3"
+      style="background:#162830; border-bottom:1px solid #1e3540;">
+      <p class="text-xs font-bold" style="color:white;">
+        🔔 Solicitudes de citas ({{ countSolicitudes }})
+      </p>
+      <button class="btn btn-xs btn-circle btn-ghost opacity-50"
+        style="color:white;"
+        (click)="cerrarNotif()">✕</button>
+    </div>
+
+    <div style="overflow-y:auto; flex:1;">
+      @if (solicitudes.length === 0) {
+        <div class="px-4 py-8 text-center">
+          <p class="text-xs" style="color:rgba(255,255,255,0.4);">
+            No hay solicitudes pendientes
+          </p>
+        </div>
+      }
+
+      @for (s of solicitudes; track s.id) {
+        <div class="px-4 py-3 border-b" style="border-color:#1e3540;">
+          <p class="text-xs font-semibold" style="color:white;">{{ s.paciente_nombre }}</p>
+          <p class="text-[10px] mt-[2px]" style="color:rgba(255,255,255,0.5);">
+            {{ formatFecha(s.fecha) }} · {{ formatHora(s.hora) }}
+          </p>
+          <p class="text-[10px]" style="color:rgba(255,255,255,0.5);">{{ s.sucursal_nombre }}</p>
+          @if (s.notas) {
+            <p class="text-[10px] mt-1 italic" style="color:rgba(255,255,255,0.4);">
+              "{{ s.notas }}"
+            </p>
+          }
+          <div class="flex gap-2 mt-2">
+            <button class="btn btn-xs flex-1 font-semibold"
+              style="background:rgba(13,112,107,0.6); color:white; border:none;"
+              (click)="abrirConfirmar(s)">
+              ✓ Confirmar
+            </button>
+            <button class="btn btn-xs flex-1"
+              style="background:rgba(239,68,68,0.3); color:#fca5a5; border:none;"
+              (click)="abrirRechazar(s.id)">
+              ✕ Rechazar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- ═══ MODAL RECHAZAR SOLICITUD ═══ -->
+@if (modalRechazarVisible) {
+  <div class="fixed inset-0 z-[10001] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarRechazar()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <h3 class="font-bold text-base" style="color:#162830;">
+          Rechazar solicitud
+        </h3>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarRechazar()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 flex flex-col gap-4">
+        <div class="flex items-start gap-3 px-4 py-3 rounded-xl"
+          style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg"
+            style="width:20px;height:20px;color:#dc2626;flex-shrink:0;"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <p class="text-sm" style="color:#dc2626;">
+            ¿Estás seguro que deseas rechazar esta solicitud de cita?
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Motivo del rechazo
+           
+          </label>
+          <textarea class="textarea textarea-bordered textarea-sm w-full resize-none"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            rows="3"
+            placeholder="Ej: No hay disponibilidad en esa fecha, favor reagendar..."
+            [(ngModel)]="motivoRechazo">
+          </textarea>
+        </div>
+
+        @if (errorRechazar) {
+          <div class="alert alert-error text-sm py-2">
+            <span>⚠ {{ errorRechazar }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarRechazar()" [disabled]="rechazando">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#EF4444; color:white; border:none;"
+          (click)="confirmarRechazo()"
+          [disabled]="rechazando">
+          @if (!rechazando) { ✕ Rechazar solicitud }
+          @if (rechazando) {
+            <span class="loading loading-spinner loading-xs"></span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ═══ MODAL CONFIRMAR SOLICITUD ═══ -->
+@if (modalConfirmarVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarConfirmar()">
+
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">
+            Confirmar solicitud
+          </h3>
+          <p class="text-xs mt-[2px]" style="color:#4a6870;">
+            {{ solicitudSeleccionada?.paciente_nombre }} ·
+            {{ formatFecha(solicitudSeleccionada?.fecha) }} ·
+            {{ formatHora(solicitudSeleccionada?.hora) }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarConfirmar()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 flex flex-col gap-4">
+
+        @if (solicitudSeleccionada?.notas) {
+          <div class="px-4 py-3 rounded-xl"
+            style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+            <p class="text-xs font-semibold mb-1" style="color:#005f6b;">
+              Síntomas del paciente:
+            </p>
+            <p class="text-sm" style="color:#162830;">
+              {{ solicitudSeleccionada?.notas }}
+            </p>
+          </div>
+        }
+
+        <!-- Tratamiento -->
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Tratamiento
+          </label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            [(ngModel)]="formConfirmar.tratamiento_id"
+            (ngModelChange)="onTratamientoChange($event)">
+            <option [ngValue]="null">— Seleccionar tratamiento —</option>
+            @for (t of getTratamientosUnicos(); track t.tratamiento_id) {
+              <option [ngValue]="t.tratamiento_id">{{ t.tratamiento }}</option>
+            }
+            <option [ngValue]="0">✏️ Otro (especificar manualmente)</option>
+          </select>
+        </div>
+
+        @if (formConfirmar.tratamiento_id && !esOtroTratamiento) {
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Subtratamiento
+            </label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formConfirmar.subtratamiento_id">
+              <option [ngValue]="null">— Seleccionar —</option>
+              @for (st of subtraFiltrados; track st.subtratamiento_id) {
+                <option [ngValue]="st.subtratamiento_id">{{ st.subtratamiento }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        
+
+        @if (errorConfirmar) {
+          <div class="alert alert-error text-sm py-2">
+            <span>⚠ {{ errorConfirmar }}</span>
+          </div>
+        }
+        @if (exitoConfirmar) {
+          <div class="alert alert-success text-sm py-2">
+            <span>{{ exitoConfirmar }}</span>
+          </div>
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarConfirmar()" [disabled]="confirmando">
+          Cancelar
+        </button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#0d706b; color:white; border:none;"
+          (click)="confirmar()"
+          [disabled]="confirmando || !!exitoConfirmar">
+          @if (!confirmando) { ✓ Confirmar cita }
+          @if (confirmando) {
+            <span class="loading loading-spinner loading-xs"></span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+

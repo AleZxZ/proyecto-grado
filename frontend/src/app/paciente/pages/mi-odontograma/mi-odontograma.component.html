@@ -1,0 +1,169 @@
+<div class="min-h-screen p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold" style="color:#162830;">Mi odontograma</h1>
+    <p class="text-sm mt-1" style="color:#4a6870;">
+      Estado actual de tu dentadura — solo lectura
+    </p>
+  </div>
+
+  <!-- LOADING -->
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#0d706b;"></span>
+    </div>
+  }
+
+  @if (!cargando) {
+
+    <!-- ODONTOGRAMA -->
+    <div class="rounded-2xl p-5 mb-6"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+
+      <!-- Superior -->
+      <p class="text-xs font-bold uppercase tracking-widest mb-3"
+        style="color:#4a6870;">
+        Maxilar Superior
+      </p>
+      <div class="flex gap-1 mb-6 overflow-x-auto pb-2">
+        @for (diente of dientesSuperiores; track diente) {
+          <div class="flex flex-col items-center gap-1 flex-shrink-0">
+            <span class="text-[9px] font-bold" style="color:#4a6870;">
+              {{ diente }}
+            </span>
+            <div class="relative">
+              <!-- Diente extraído -->
+              @if (isDienteExtraido(diente)) {
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style="background:#F0F4F5; border:1px solid #D0D8DC;">
+                  <span class="text-xs" style="color:#B0BEC5;">✕</span>
+                </div>
+              } @else {
+                <!-- Grilla 3x3 -->
+                <div class="grid gap-[1px]"
+                  style="grid-template-columns:repeat(3,12px); grid-template-rows:repeat(3,12px);">
+                  <!-- vestibular -->
+                  <div></div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'vestibular')">
+                  </div>
+                  <div></div>
+                  <!-- mesial oclusal distal -->
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'mesial')">
+                  </div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'oclusal')">
+                  </div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'distal')">
+                  </div>
+                  <!-- palatino -->
+                  <div></div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'palatino')">
+                  </div>
+                  <div></div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Inferior -->
+      <p class="text-xs font-bold uppercase tracking-widest mb-3"
+        style="color:#4a6870;">
+        Maxilar Inferior
+      </p>
+      <div class="flex gap-1 overflow-x-auto pb-2">
+        @for (diente of dientesInferiores; track diente) {
+          <div class="flex flex-col items-center gap-1 flex-shrink-0">
+            <div class="relative">
+              @if (isDienteExtraido(diente)) {
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style="background:#F0F4F5; border:1px solid #D0D8DC;">
+                  <span class="text-xs" style="color:#B0BEC5;">✕</span>
+                </div>
+              } @else {
+                <div class="grid gap-[1px]"
+                  style="grid-template-columns:repeat(3,12px); grid-template-rows:repeat(3,12px);">
+                  <div></div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'vestibular')">
+                  </div>
+                  <div></div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'mesial')">
+                  </div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'oclusal')">
+                  </div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'distal')">
+                  </div>
+                  <div></div>
+                  <div class="rounded-sm border"
+                    style="border-color:#D0D8DC;"
+                    [style.background]="getCaraColor(diente, 'palatino')">
+                  </div>
+                  <div></div>
+                </div>
+              }
+            </div>
+            <span class="text-[9px] font-bold" style="color:#4a6870;">
+              {{ diente }}
+            </span>
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- LEYENDA -->
+    <div class="rounded-2xl p-4 mb-6"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+      <p class="text-xs font-bold uppercase tracking-widest mb-3"
+        style="color:#4a6870;">
+        Leyenda
+      </p>
+      <div class="flex flex-wrap gap-3">
+        @for (e of ESTADOS; track e.value) {
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-sm border"
+              style="border-color:#D0D8DC;"
+              [style.background]="e.color === '#ffffff' ? '#f5f5f5' : e.color">
+            </div>
+            <span class="text-xs" style="color:#4a6870;">{{ e.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- AVISO SOLO LECTURA -->
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl"
+      style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+      <svg xmlns="http://www.w3.org/2000/svg"
+        style="width:18px;height:18px;color:#00BCD4;flex-shrink:0;"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p class="text-xs" style="color:#005f6b;">
+        Este odontograma es de solo lectura. Los cambios son realizados únicamente por tu doctora.
+      </p>
+    </div>
+
+  }
+
+</div>

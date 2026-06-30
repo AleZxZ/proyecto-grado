@@ -1,0 +1,741 @@
+<div class="min-h-screen p-4 lg:p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl lg:text-2xl font-bold" style="color:#162830;">Pacientes</h1>
+      <p class="text-xs lg:text-sm mt-1" style="color:#4a6870;">
+        {{ totalPacientes }} registrados · {{ totalActivos }} activos
+      </p>
+    </div>
+    <button class="btn btn-sm gap-2"
+      style="background:#00BCD4; color:white; border:none;"
+      (click)="abrirModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span class="hidden sm:inline">Nuevo paciente</span>
+    </button>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="mb-4">
+    <input type="text"
+      class="input input-bordered input-sm w-full lg:max-w-sm"
+      style="background:white; border-color:#D0D8DC; color:#162830;"
+      placeholder="Buscar por nombre, email o teléfono..."
+      [(ngModel)]="busqueda"
+      (ngModelChange)="filtrar()"/>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="cargando" class="flex items-center gap-3 py-12 justify-center opacity-60">
+    <span class="loading loading-spinner" style="color:#00BCD4;"></span>
+    <span class="text-sm">Cargando pacientes...</span>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error && !cargando" class="alert alert-error">
+    <span>⚠ {{ error }}</span>
+  </div>
+
+  <!-- ═══ TABLA — solo desktop ═══ -->
+  <div *ngIf="!cargando && !error" class="hidden lg:block rounded-2xl overflow-hidden"
+    style="border:1px solid #D0D8DC; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <table class="table w-full">
+      <thead style="background:#E2E8EA;">
+        <tr>
+          <th style="color:#4a6870; font-size:11px;">#</th>
+          <th style="color:#4a6870; font-size:11px;">Paciente</th>
+          <th style="color:#4a6870; font-size:11px;">Contacto</th>
+          <th style="color:#4a6870; font-size:11px;">Sucursal</th>
+          <th style="color:#4a6870; font-size:11px;">Edad</th>
+          <th style="color:#4a6870; font-size:11px;">Estado</th>
+          <th style="color:#4a6870; font-size:11px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of pacientesFiltrados; track p.id; let i = $index) {
+          <tr style="border-bottom:1px solid #F0F4F5;">
+            <td class="text-xs font-mono" style="color:#B0BEC5;">#{{ i + 1 }}</td>
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700; font-size:13px;">
+                  {{ p.nombre?.charAt(0) }}{{ p.apellido?.charAt(0) }}
+                </div>
+                <div>
+                  <p class="font-semibold text-sm" style="color:#162830;">
+                    {{ p.nombre }} {{ p.apellido }}
+                  </p>
+                  <p class="text-xs" style="color:#4a6870;">{{ p.email_acceso }}</p>
+                </div>
+              </div>
+            </td>
+            <td><p class="text-xs" style="color:#162830;">{{ p.celular }}</p></td>
+            <td>
+              <span class="text-xs px-2 py-1 rounded-full"
+                style="background:rgba(0,188,212,0.1); color:#005f6b;">
+                {{ p.sucursal }}
+              </span>
+            </td>
+            <td class="text-sm" style="color:#162830;">{{ calcularEdad(p.fecha_nac) }} años</td>
+            <td>
+              <span class="text-xs px-2 py-1 rounded-full font-medium"
+                [style.background]="p.activo ? 'rgba(139,195,74,0.15)' : 'rgba(239,68,68,0.1)'"
+                [style.color]="p.activo ? '#3d5c1a' : '#dc2626'">
+                {{ p.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-xs btn-ghost" (click)="abrirEditar(p)">
+                Ver / Editar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="text-center py-8 text-sm" style="color:#B0BEC5;">
+              No se encontraron pacientes
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ TARJETAS — solo móvil ═══ -->
+  <div *ngIf="!cargando && !error" class="lg:hidden flex flex-col gap-3">
+    @for (p of pacientesFiltrados; track p.id) {
+      <div class="rounded-2xl overflow-hidden"
+        style="border:1px solid #D0D8DC; background:white;">
+        <div class="flex items-center justify-between px-4 py-3"
+          style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+              style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700; font-size:14px;">
+              {{ p.nombre?.charAt(0) }}{{ p.apellido?.charAt(0) }}
+            </div>
+            <div>
+              <p class="font-semibold text-sm" style="color:#162830;">
+                {{ p.nombre }} {{ p.apellido }}
+              </p>
+              <p class="text-xs" style="color:#4a6870;">{{ p.email_acceso }}</p>
+            </div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
+            [style.background]="p.activo ? 'rgba(139,195,74,0.15)' : 'rgba(239,68,68,0.1)'"
+            [style.color]="p.activo ? '#3d5c1a' : '#dc2626'">
+            {{ p.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="px-4 py-3 flex items-center justify-between">
+          <div class="flex flex-col gap-1 text-xs" style="color:#4a6870;">
+            <span>📱 {{ p.celular ?? '—' }}</span>
+            <span>🏥 {{ p.sucursal }}</span>
+            <span>🎂 {{ calcularEdad(p.fecha_nac) }} años</span>
+          </div>
+          <button class="btn btn-sm"
+            style="background:rgba(0,188,212,0.1); color:#005f6b; border:1px solid rgba(0,188,212,0.2);"
+            (click)="abrirEditar(p)">
+            Ver / Editar
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+        No se encontraron pacientes
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL NUEVO PACIENTE
+═══════════════════════════════════════════════════ -->
+<div *ngIf="modalVisible"
+  class="fixed inset-0 z-[10000] flex items-center justify-center p-3 lg:p-4"
+  style="background:rgba(0,0,0,0.80)"
+  (click)="cerrarModal()">
+
+  <div class="w-full max-w-lg rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+    style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b"
+      style="background:#EEF4F5; border-color:#D0D8DC;">
+      <div>
+        <h3 class="font-bold text-base" style="color:#162830;">Nuevo paciente</h3>
+        <!-- Indicador de pasos -->
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-xs px-2 py-[2px] rounded-full font-medium"
+            [style.background]="paso === 1 ? '#00BCD4' : 'rgba(0,188,212,0.2)'"
+            [style.color]="paso === 1 ? 'white' : '#005f6b'">
+            1. Cuenta
+          </span>
+          <span class="text-xs" style="color:#D0D8DC;">→</span>
+          <span class="text-xs px-2 py-[2px] rounded-full font-medium"
+            [style.background]="paso === 2 ? '#00BCD4' : 'rgba(0,188,212,0.2)'"
+            [style.color]="paso === 2 ? 'white' : '#005f6b'">
+            2. Datos e historial
+          </span>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-circle btn-ghost opacity-50 cerrar-modal"
+        (click)="cerrarModal()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+      <!-- ══ PASO 1 — Cuenta de acceso ══ -->
+      <ng-container *ngIf="paso === 1">
+
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Nombre</label>
+      <input type="text" class="input input-bordered input-sm w-full"
+        style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+        placeholder="Ej: Juan"
+        [(ngModel)]="formUsuario.nombre"/>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Apellido</label>
+      <input type="text" class="input input-bordered input-sm w-full"
+        style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+        placeholder="Ej: Pérez"
+        [(ngModel)]="formUsuario.apellido"/>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Email</label>
+    <input type="email" class="input input-bordered input-sm w-full"
+      style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+      placeholder="paciente@email.com"
+      [(ngModel)]="formUsuario.email"/>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Contraseña</label>
+    <div class="relative">
+      <input
+        [type]="mostrarPassword ? 'text' : 'password'"
+        class="input input-bordered input-sm w-full pr-10"
+        style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+        placeholder="Mínimo 6 caracteres"
+        [(ngModel)]="formUsuario.password"/>
+      <button type="button"
+        class="absolute inset-y-0 right-0 pr-3 flex items-center"
+        style="background:transparent; border:none; cursor:pointer;"
+        (click)="togglePassword()">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            [attr.d]="mostrarPassword
+              ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21'
+              : 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Celular</label>
+    <input type="tel" class="input input-bordered input-sm w-full"
+      style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+      placeholder="Ej: 77712345"
+      [(ngModel)]="formUsuario.celular"/>
+  </div>
+
+      </ng-container>
+
+      <!-- ══ PASO 2 — Datos personales + Historial ══ -->
+      <ng-container *ngIf="paso === 2">
+
+        <p class="text-xs font-bold uppercase tracking-widest"
+          style="color:#00BCD4;">Datos personales</p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Fecha de nacimiento</label>
+            <input type="date" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formPaciente.fecha_nac"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Género</label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formPaciente.genero">
+              <option value="">— Seleccionar —</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Teléfono Referencia</label>
+            <input type="tel" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Ej: 77712345"
+              [(ngModel)]="formPaciente.telefono"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Dirección</label>
+          <input type="text" class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Av. Principal 123"
+            [(ngModel)]="formPaciente.direccion"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Sucursal</label>
+          <select class="select select-bordered select-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            [(ngModel)]="formPaciente.sucursal_pref">
+            <option [ngValue]="null">— Seleccionar sucursal —</option>
+            <option [ngValue]="1">Sucursal Centro</option>
+            <option [ngValue]="2">Sucursal Este</option>
+          </select>
+        </div>
+
+        <div class="w-full h-px mt-2" style="background:#D0D8DC;"></div>
+
+        <p class="text-xs font-bold uppercase tracking-widest"
+          style="color:#00BCD4;">Historial clínico</p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Grupo sanguíneo</label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formHistorial.grupo_sanguineo">
+              <option value="">— Seleccionar —</option>
+              <option *ngFor="let g of ['A+','A-','B+','B-','AB+','AB-','O+','O-']"
+                [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          <div class="flex items-center justify-between px-4 py-3 rounded-xl"
+                 style="background:#EEF4F5; border:1px solid #D0D8DC;">
+                <div>
+                    <p class="text-xs font-semibold" style="color:#162830;">Hemorragia anormal</p>
+                    <p class="text-xs" style="color:#4a6870;">¿Ha tenido episodios de hemorragia anormal?</p>
+                </div>
+               <input type="checkbox"
+                class="toggle toggle-sm toggle-hemorragia"
+                [(ngModel)]="formHistorial.hemorragia_anormal"/>
+            </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Enfermedad sistémica
+          </label>
+          <input type="text" class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Diabetes, Hipertensión..."
+            [(ngModel)]="formHistorial.enfermedad_sistemica"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Intervención quirúrgica
+          </label>
+          <input type="text" class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Apendicectomía 2020..."
+            [(ngModel)]="formHistorial.intervencion_quirurgica"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Alergia a medicamentos
+          </label>
+          <input type="text" class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Penicilina, Ibuprofeno..."
+            [(ngModel)]="formHistorial.alergia_medicamentos"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Medicación actual
+          </label>
+          <input type="text" class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Ej: Metformina 500mg..."
+            [(ngModel)]="formHistorial.medicacion_actual"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Observaciones
+          </label>
+          <textarea class="textarea textarea-bordered textarea-sm w-full resize-none"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            rows="2"
+            placeholder="Observaciones adicionales..."
+            [(ngModel)]="formHistorial.observaciones">
+          </textarea>
+        </div>
+
+      </ng-container>
+
+      <!-- Error -->
+      <div *ngIf="errorModal" class="alert alert-error text-sm py-2">
+        <span>⚠ {{ errorModal }}</span>
+      </div>
+
+      <!-- Éxito -->
+      <div *ngIf="exitoModal" class="alert alert-success text-sm py-2">
+        <span>{{ exitoModal }}</span>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex gap-3 px-5 py-4 border-t"
+      style="border-color:#D0D8DC; background:#EEF4F5;">
+
+      <button *ngIf="paso === 1"
+        class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+        (click)="cerrarModal()">
+        Cancelar
+      </button>
+
+      <button *ngIf="paso === 2"
+        class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+        (click)="anteriorPaso()" [disabled]="guardando">
+        ← Anterior
+      </button>
+
+      <button *ngIf="paso === 1"
+        class="btn btn-sm flex-1 font-semibold"
+        style="background:#00BCD4; color:white; border:none;"
+        (click)="siguientePaso()">
+        Siguiente →
+      </button>
+
+      <button *ngIf="paso === 2"
+        class="btn btn-sm flex-1 font-semibold"
+        style="background:#00BCD4; color:white; border:none;"
+        (click)="guardar()"
+        [disabled]="guardando || !!exitoModal">
+        <span *ngIf="!guardando">✓ Registrar paciente</span>
+        <span *ngIf="guardando" class="loading loading-spinner loading-xs"></span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+@if (modalEditarVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarEditar()">
+
+    <div class="w-full max-w-lg rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">
+            Editar paciente
+          </h3>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-xs px-2 py-[2px] rounded-full font-medium"
+              [style.background]="pasoEdicion === 1 ? '#00BCD4' : 'rgba(0,188,212,0.2)'"
+              [style.color]="pasoEdicion === 1 ? 'white' : '#005f6b'">
+              1. Cuenta
+            </span>
+            <span class="text-xs" style="color:#D0D8DC;">→</span>
+            <span class="text-xs px-2 py-[2px] rounded-full font-medium"
+              [style.background]="pasoEdicion === 2 ? '#00BCD4' : 'rgba(0,188,212,0.2)'"
+              [style.color]="pasoEdicion === 2 ? 'white' : '#005f6b'">
+              2. Datos e historial
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarEditar()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+
+        <!-- PASO 1 — Datos de acceso -->
+        @if (pasoEdicion === 1) {
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Nombre</label>
+              <input type="text" class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formEditar.usuario.nombre"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Apellido</label>
+              <input type="text" class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formEditar.usuario.apellido"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Email</label>
+            <input type="email" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.usuario.email"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Celular</label>
+            <input type="tel" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.usuario.celular"/>
+          </div>
+
+          <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+          <p class="text-xs font-bold uppercase tracking-widest" style="color:#4a6870;">
+            Cambiar contraseña <span class="font-normal normal-case">(opcional)</span>
+          </p>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Nueva contraseña
+            </label>
+            <div class="relative">
+              <input
+                [type]="mostrarNuevaPassword ? 'text' : 'password'"
+                class="input input-bordered input-sm w-full pr-10"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                placeholder="Dejar vacío para no cambiar"
+                [(ngModel)]="formEditar.nuevaPassword"/>
+              <button type="button"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                style="background:transparent; border:none; cursor:pointer;"
+                (click)="mostrarNuevaPassword = !mostrarNuevaPassword">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                  style="width:16px;height:16px;color:#9ca3af;"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    [attr.d]="mostrarNuevaPassword
+                      ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21'
+                      : 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Confirmar contraseña
+            </label>
+            <input
+              type="password"
+              class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Repetir nueva contraseña"
+              [(ngModel)]="formEditar.confirmarPassword"/>
+          </div>
+
+        }
+
+        <!-- PASO 2 — Datos personales + historial -->
+        @if (pasoEdicion === 2) {
+
+          <p class="text-xs font-bold uppercase tracking-widest" style="color:#00BCD4;">
+            Datos personales
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                Fecha de nacimiento
+              </label>
+              <input type="date" class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formEditar.paciente.fecha_nac"/>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Género</label>
+              <select class="select select-bordered select-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formEditar.paciente.genero">
+                <option value="">— Seleccionar —</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                Teléfono de referencia
+              </label>
+              <input type="tel" class="input input-bordered input-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                placeholder="Ej: 77712345 (familiar o emergencia)"
+                [(ngModel)]="formEditar.paciente.telefono"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Dirección</label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.paciente.direccion"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Sucursal</label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.paciente.sucursal_pref">
+              <option [ngValue]="null">— Seleccionar —</option>
+              <option [ngValue]="1">Sucursal Centro</option>
+              <option [ngValue]="2">Sucursal Este</option>
+            </select>
+          </div>
+
+          <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+          <p class="text-xs font-bold uppercase tracking-widest" style="color:#00BCD4;">
+            Historial clínico
+          </p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+                Grupo sanguíneo
+              </label>
+              <select class="select select-bordered select-sm w-full"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                [(ngModel)]="formEditar.historial.grupo_sanguineo">
+                <option value="">— Seleccionar —</option>
+                @for (g of ['A+','A-','B+','B-','AB+','AB-','O+','O-']; track g) {
+                  <option [value]="g">{{ g }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex items-center gap-3 pt-5">
+              <div class="flex items-center justify-between px-4 py-3 rounded-xl w-full"
+                style="background:#EEF4F5; border:1px solid #D0D8DC;">
+                <p class="text-xs font-semibold" style="color:#162830;">Hemorragia anormal</p>
+                <input type="checkbox"
+                  class="toggle toggle-sm toggle-hemorragia"
+                  [(ngModel)]="formEditar.historial.hemorragia_anormal"/>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Enfermedad sistémica
+            </label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.historial.enfermedad_sistemica"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Intervención quirúrgica
+            </label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.historial.intervencion_quirurgica"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Alergia a medicamentos
+            </label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.historial.alergia_medicamentos"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Medicación actual
+            </label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.historial.medicacion_actual"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+              Observaciones
+            </label>
+            <textarea class="textarea textarea-bordered textarea-sm w-full resize-none"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              rows="2"
+              [(ngModel)]="formEditar.historial.observaciones">
+            </textarea>
+          </div>
+
+        }
+
+        <!-- Error -->
+        @if (errorEdicion) {
+          <div class="alert alert-error text-sm py-2">
+            <span>⚠ {{ errorEdicion }}</span>
+          </div>
+        }
+
+        <!-- Éxito -->
+        @if (exitoEdicion) {
+          <div class="alert alert-success text-sm py-2">
+            <span>{{ exitoEdicion }}</span>
+          </div>
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+
+        @if (pasoEdicion === 1) {
+          <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+            (click)="cerrarEditar()">
+            Cancelar
+          </button>
+          <button class="btn btn-sm flex-1 font-semibold"
+            style="background:#00BCD4; color:white; border:none;"
+            (click)="siguientePasoEdicion()">
+            Siguiente →
+          </button>
+        }
+
+        @if (pasoEdicion === 2) {
+          <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+            (click)="pasoEdicion = 1" [disabled]="guardandoEdicion">
+            ← Anterior
+          </button>
+          <button class="btn btn-sm flex-1 font-semibold"
+            style="background:#00BCD4; color:white; border:none;"
+            (click)="guardarEdicion()"
+            [disabled]="guardandoEdicion || !!exitoEdicion">
+            @if (!guardandoEdicion) { ✓ Guardar cambios }
+            @if (guardandoEdicion) {
+              <span class="loading loading-spinner loading-xs"></span>
+            }
+          </button>
+        }
+
+      </div>
+    </div>
+  </div>
+}

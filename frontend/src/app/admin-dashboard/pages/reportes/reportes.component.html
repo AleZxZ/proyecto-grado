@@ -1,0 +1,237 @@
+<div class="min-h-screen p-4 lg:p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl lg:text-2xl font-bold" style="color:#162830;">Reportes</h1>
+      <p class="text-xs lg:text-sm mt-1" style="color:#4a6870;">
+        Estadísticas y análisis de pacientes
+      </p>
+    </div>
+    <button class="btn btn-sm gap-2"
+      style="background:#162830; color:white; border:none;"
+      (click)="generarPDF()"
+      [disabled]="generandoPDF || !datos">
+      @if (!generandoPDF) {
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <span class="hidden sm:inline">Exportar PDF</span>
+      }
+      @if (generandoPDF) {
+        <span class="loading loading-spinner loading-xs"></span>
+      }
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="flex flex-col gap-3 mb-6">
+
+    @if (!sucursalUsuario) {
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        <button class="btn btn-sm px-3 flex-shrink-0"
+          [style.background]="sucursal === 0 ? '#162830' : 'white'"
+          [style.color]="sucursal === 0 ? 'white' : '#4a6870'"
+          [style.border-color]="sucursal === 0 ? '#162830' : '#D0D8DC'"
+          (click)="sucursal = 0; cargarReporte()">
+          Todas
+        </button>
+        <button class="btn btn-sm px-3 flex-shrink-0"
+          [style.background]="sucursal === 1 ? 'rgba(0,188,212,0.15)' : 'white'"
+          [style.color]="sucursal === 1 ? '#005f6b' : '#4a6870'"
+          [style.border-color]="sucursal === 1 ? '#00BCD4' : '#D0D8DC'"
+          (click)="sucursal = 1; cargarReporte()">
+          Sucursal Centro
+        </button>
+        <button class="btn btn-sm px-3 flex-shrink-0"
+          [style.background]="sucursal === 2 ? 'rgba(139,195,74,0.15)' : 'white'"
+          [style.color]="sucursal === 2 ? '#3d5c1a' : '#4a6870'"
+          [style.border-color]="sucursal === 2 ? '#8BC34A' : '#D0D8DC'"
+          (click)="sucursal = 2; cargarReporte()">
+          Sucursal Este
+        </button>
+      </div>
+    }
+
+    @if (sucursalUsuario) {
+      <div class="px-4 py-2 rounded-xl w-fit"
+        style="background:rgba(0,188,212,0.08); border:1px solid rgba(0,188,212,0.2);">
+        <span class="text-xs font-semibold" style="color:#005f6b;">
+          {{ getSucursalNombre(sucursalUsuario) }}
+        </span>
+      </div>
+    }
+
+    <!-- Rango fechas -->
+    <div class="flex items-center gap-2">
+      <input type="date"
+        class="input input-bordered input-sm flex-1 lg:flex-none"
+        style="background:white; border-color:#D0D8DC; color:#162830;"
+        [(ngModel)]="fechaDesde"
+        (ngModelChange)="cargarReporte()"/>
+      <span class="text-xs flex-shrink-0" style="color:#4a6870;">—</span>
+      <input type="date"
+        class="input input-bordered input-sm flex-1 lg:flex-none"
+        style="background:white; border-color:#D0D8DC; color:#162830;"
+        [(ngModel)]="fechaHasta"
+        (ngModelChange)="cargarReporte()"/>
+    </div>
+
+  </div>
+
+  <!-- LOADING -->
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#00BCD4;"></span>
+      <span class="text-sm">Cargando reporte...</span>
+    </div>
+  }
+
+  @if (!cargando && datos) {
+
+    <!-- STATS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Total pacientes</p>
+        <p class="text-2xl lg:text-3xl font-bold mt-2" style="color:#162830;">
+          {{ datos.totalPacientes }}
+        </p>
+      </div>
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Pacientes nuevos</p>
+        <p class="text-2xl lg:text-3xl font-bold mt-2" style="color:#00BCD4;">
+          {{ datos.pacientesNuevos }}
+        </p>
+        <p class="text-[10px] mt-1" style="color:#4a6870;">En el período</p>
+      </div>
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Activos</p>
+        <p class="text-2xl lg:text-3xl font-bold mt-2" style="color:#22C55E;">
+          {{ datos.estadoPacientes?.activos ?? 0 }}
+        </p>
+      </div>
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <p class="text-[10px] lg:text-xs" style="color:#4a6870;">Inactivos</p>
+        <p class="text-2xl lg:text-3xl font-bold mt-2" style="color:#EF4444;">
+          {{ datos.estadoPacientes?.inactivos ?? 0 }}
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-6">
+
+      <!-- GRÁFICO PACIENTES POR MES -->
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <h2 class="text-sm font-semibold mb-4" style="color:#162830;">
+          Pacientes nuevos por mes
+        </h2>
+        @if (datos.porMes.length === 0) {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay datos disponibles
+          </div>
+        } @else {
+          <div class="flex items-end gap-1 lg:gap-2 w-full" style="height:100px;">
+            @for (m of datos.porMes; track m.mes) {
+              <div class="flex-1 flex flex-col items-center justify-end gap-1" style="height:100%;">
+                <span class="text-[9px] lg:text-xs font-bold" style="color:#00BCD4;">
+                  {{ m.total }}
+                </span>
+                <div class="w-full rounded-t-lg"
+                  style="background:rgba(0,188,212,0.5); min-height:4px;"
+                  [style.height]="(m.total / getMaxPorMes() * 80) + 'px'">
+                </div>
+                <span class="text-[8px] lg:text-[9px]" style="color:#4a6870;">
+                  {{ formatMesGrafico(m.mes) }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- TOP TRATAMIENTOS -->
+      <div class="rounded-2xl p-4 lg:p-5"
+        style="background:#EEF4F5; border:1px solid #D0D8DC;">
+        <h2 class="text-sm font-semibold mb-4" style="color:#162830;">
+          Top 5 tratamientos
+        </h2>
+        @if (datos.topTratamientos.length === 0) {
+          <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+            No hay datos en este período
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3">
+            @for (t of datos.topTratamientos; track t.tratamiento) {
+              <div class="flex items-center gap-2 lg:gap-3">
+                <span class="text-xs w-24 lg:w-28 flex-shrink-0 truncate"
+                  style="color:#162830;">
+                  {{ t.tratamiento }}
+                </span>
+                <div class="flex-1 h-4 rounded-full overflow-hidden"
+                  style="background:#D0D8DC;">
+                  <div class="h-full rounded-full"
+                    style="background:rgba(13,112,107,0.7);"
+                    [style.width.%]="(t.total / getMaxTratamiento()) * 100">
+                  </div>
+                </div>
+                <span class="text-xs font-bold w-5 text-right flex-shrink-0"
+                  style="color:#0d706b;">
+                  {{ t.total }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+
+    <!-- DISTRIBUCIÓN ESTADOS -->
+    <div class="rounded-2xl p-4 lg:p-5"
+      style="background:#EEF4F5; border:1px solid #D0D8DC;">
+      <h2 class="text-sm font-semibold mb-4" style="color:#162830;">
+        Distribución de estados clínicos
+      </h2>
+      @if (datos.distribucionEstados.length === 0) {
+        <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+          No hay datos en este período
+        </div>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (e of datos.distribucionEstados; track e.estado) {
+            <div class="flex items-center gap-2 lg:gap-3">
+              <div class="w-3 h-3 rounded-full flex-shrink-0"
+                [style.background]="getColorEstado(e.estado)">
+              </div>
+              <span class="text-xs w-20 lg:w-24 flex-shrink-0 capitalize"
+                style="color:#162830;">
+                {{ e.estado }}
+              </span>
+              <div class="flex-1 h-4 rounded-full overflow-hidden"
+                style="background:#D0D8DC;">
+                <div class="h-full rounded-full"
+                  [style.background]="getColorEstado(e.estado)"
+                  [style.width.%]="(e.total / getTotalEstados()) * 100">
+                </div>
+              </div>
+              <span class="text-xs font-bold flex-shrink-0 text-right"
+                style="color:#4a6870; min-width:60px;">
+                {{ e.total }}
+                ({{ ((e.total / getTotalEstados()) * 100).toFixed(1) }}%)
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

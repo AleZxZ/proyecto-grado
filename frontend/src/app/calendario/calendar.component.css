@@ -1,0 +1,46 @@
+/* calendar.component.css — Paleta Escobar Odontología · Opción 2 */
+
+/* Hover en celdas con predicciones */
+.day-has-preds:hover {
+  background-color: rgba(0,188,212,0.05) !important;
+}
+
+/* Chip hover suc1 */
+.chip-suc1:hover {
+  background: rgba(0,188,212,0.25) !important;
+}
+
+/* Chip hover suc2 */
+.chip-suc2:hover {
+  background: rgba(139,195,74,0.25) !important;
+}
+
+/* Animación fadeIn modal */
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Transición suave tooltip */
+.tooltip-enter {
+  animation: fadeInModal 0.15s ease;
+}
+
+/* Scrollbar claro */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #EEF4F5; }
+::-webkit-scrollbar-thumb { background: #B0C4CC; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #00BCD4; }
+
+/* Toggle predicciones — color personalizado */
+.toggle {
+  --tglbg: #D0D8DC;
+  border-color: #D0D8DC;
+  background-color: #D0D8DC;
+}
+
+.toggle:checked {
+  --tglbg: #00BCD4;
+  border-color: #00BCD4;
+  background-color: #00BCD4;
+}

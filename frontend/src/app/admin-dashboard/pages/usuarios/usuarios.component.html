@@ -1,0 +1,421 @@
+<div class="min-h-screen p-4 lg:p-6" style="background:#F8F9FA; color:#162830;">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl lg:text-2xl font-bold" style="color:#162830;">Usuarios</h1>
+      <p class="text-xs lg:text-sm mt-1" style="color:#4a6870;">
+        {{ usuarios.length }} usuarios · {{ totalActivos }} activos
+      </p>
+    </div>
+    <button class="btn btn-sm gap-2"
+      style="background:#00BCD4; color:white; border:none;"
+      (click)="abrirCrear()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span class="hidden sm:inline">Nuevo usuario</span>
+    </button>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="mb-4">
+    <input type="text"
+      class="input input-bordered input-sm w-full lg:max-w-sm"
+      style="background:white; border-color:#D0D8DC; color:#162830;"
+      placeholder="Buscar por nombre, email o rol..."
+      [(ngModel)]="busqueda"
+      (ngModelChange)="filtrar()"/>
+  </div>
+
+  <!-- LOADING -->
+  @if (cargando) {
+    <div class="flex items-center gap-3 py-12 justify-center opacity-60">
+      <span class="loading loading-spinner" style="color:#00BCD4;"></span>
+      <span class="text-sm">Cargando usuarios...</span>
+    </div>
+  }
+
+  @if (error && !cargando) {
+    <div class="alert alert-error">
+      <span>⚠ {{ error }}</span>
+    </div>
+  }
+
+  @if (!cargando && !error) {
+
+    <!-- TABLA — solo desktop -->
+    <div class="hidden lg:block rounded-2xl overflow-hidden"
+      style="border:1px solid #D0D8DC; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <table class="table w-full">
+        <thead style="background:#E2E8EA;">
+          <tr>
+            <th style="color:#4a6870; font-size:11px;">#</th>
+            <th style="color:#4a6870; font-size:11px;">Usuario</th>
+            <th style="color:#4a6870; font-size:11px;">Celular</th>
+            <th style="color:#4a6870; font-size:11px;">Rol</th>
+            <th style="color:#4a6870; font-size:11px;">Estado</th>
+            <th style="color:#4a6870; font-size:11px;">Creado</th>
+            <th style="color:#4a6870; font-size:11px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of usuariosFiltrados; track u.id; let i = $index) {
+            <tr style="border-bottom:1px solid #F0F4F5;">
+              <td class="text-xs font-mono" style="color:#B0BEC5;">#{{ i + 1 }}</td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700; font-size:13px;">
+                    {{ u.nombre?.charAt(0) }}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-sm" style="color:#162830;">{{ u.nombre }} {{ u.apellido }}</p>
+                    <p class="text-xs" style="color:#4a6870;">{{ u.email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="text-xs" style="color:#162830;">{{ u.celular ?? '—' }}</td>
+              <td>
+                <span class="text-xs px-2 py-1 rounded-full font-medium"
+                  [style.background]="getRolColor(u.rol)"
+                  [style.color]="getRolTextColor(u.rol)">
+                  {{ u.rol === 'admin' ? 'Administrador' :
+                     u.rol === 'empleado' ? 'Empleado' :
+                     u.rol === 'doctor' ? 'Doctor' : u.rol }}
+                </span>
+              </td>
+              <td>
+                <span class="text-xs px-2 py-1 rounded-full font-medium"
+                  [style.background]="u.activo ? 'rgba(139,195,74,0.15)' : 'rgba(239,68,68,0.1)'"
+                  [style.color]="u.activo ? '#3d5c1a' : '#dc2626'">
+                  {{ u.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="text-xs" style="color:#4a6870;">
+                {{ u.creado_en | date:'dd MMM yyyy' }}
+              </td>
+              <td>
+                @if (puedeEditar(u)) {
+                  <button class="btn btn-xs btn-ghost" style="color:#00BCD4;"
+                    (click)="abrirEditar(u)">Editar</button>
+                } @else {
+                  <span class="text-xs" style="color:#B0BEC5;">—</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-8 text-sm" style="color:#B0BEC5;">
+                No se encontraron usuarios
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TARJETAS — solo móvil -->
+    <div class="lg:hidden flex flex-col gap-3">
+      @for (u of usuariosFiltrados; track u.id) {
+        <div class="rounded-2xl overflow-hidden"
+          style="border:1px solid #D0D8DC; background:white;">
+
+          <div class="flex items-center justify-between px-4 py-3"
+            style="background:#EEF4F5; border-bottom:1px solid #D0D8DC;">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style="background:rgba(0,188,212,0.15); color:#00BCD4; font-weight:700;">
+                {{ u.nombre?.charAt(0) }}
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-sm truncate" style="color:#162830;">
+                  {{ u.nombre }} {{ u.apellido }}
+                </p>
+                <p class="text-xs truncate" style="color:#4a6870;">{{ u.email }}</p>
+              </div>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ml-2"
+              [style.background]="u.activo ? 'rgba(139,195,74,0.15)' : 'rgba(239,68,68,0.1)'"
+              [style.color]="u.activo ? '#3d5c1a' : '#dc2626'">
+              {{ u.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex flex-col gap-1 text-xs" style="color:#4a6870;">
+              <span>
+                <span class="text-xs px-2 py-[2px] rounded-full font-medium"
+                  [style.background]="getRolColor(u.rol)"
+                  [style.color]="getRolTextColor(u.rol)">
+                  {{ u.rol === 'admin' ? 'Administrador' :
+                     u.rol === 'empleado' ? 'Empleado' :
+                     u.rol === 'doctor' ? 'Doctor' : u.rol }}
+                </span>
+              </span>
+              <span>📱 {{ u.celular ?? '—' }}</span>
+              <span>📅 {{ u.creado_en | date:'dd MMM yyyy' }}</span>
+            </div>
+            @if (puedeEditar(u)) {
+              <button class="btn btn-sm"
+                style="background:rgba(0,188,212,0.1); color:#005f6b; border:1px solid rgba(0,188,212,0.2);"
+                (click)="abrirEditar(u)">
+                Editar
+              </button>
+            }
+          </div>
+
+        </div>
+      } @empty {
+        <div class="text-center py-8 text-sm" style="color:#B0BEC5;">
+          No se encontraron usuarios
+        </div>
+      }
+    </div>
+
+  }
+
+</div>
+
+<!-- MODAL CREAR — sin cambios, ya es responsivo -->
+@if (modalCrearVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 lg:p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarCrear()">
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <h3 class="font-bold text-base" style="color:#162830;">Nuevo usuario</h3>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarCrear()">✕</button>
+      </div>
+
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Nombre</label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Ej: María" [(ngModel)]="formUsuario.nombre"/>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Apellido</label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Ej: García" [(ngModel)]="formUsuario.apellido"/>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Email</label>
+            <input type="email" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="usuario@dental.com" [(ngModel)]="formUsuario.email"/>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Contraseña</label>
+            <div class="relative">
+              <input [type]="mostrarPassword ? 'text' : 'password'"
+                class="input input-bordered input-sm w-full pr-10"
+                style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+                placeholder="Mínimo 6 caracteres" [(ngModel)]="formUsuario.password"/>
+              <button type="button"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                style="background:transparent; border:none; cursor:pointer;"
+                (click)="mostrarPassword = !mostrarPassword">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                  style="width:16px;height:16px;color:#9ca3af;"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    [attr.d]="mostrarPassword
+                      ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21'
+                      : 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Celular</label>
+            <input type="tel" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Ej: 77712345" [(ngModel)]="formUsuario.celular"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Rol</label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formUsuario.rol">
+              @for (r of ROLES; track r.value) {
+                <option [value]="r.value">{{ r.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl"
+          style="background:#EEF4F5; border:1px solid #D0D8DC;">
+          <div>
+            <p class="text-xs font-semibold" style="color:#162830;">Usuario activo</p>
+            <p class="text-xs" style="color:#4a6870;">Puede iniciar sesión</p>
+          </div>
+          <input type="checkbox" class="toggle toggle-sm" [(ngModel)]="formUsuario.activo"/>
+        </div>
+
+        @if (errorModal) {
+          <div class="alert alert-error text-sm py-2"><span>⚠ {{ errorModal }}</span></div>
+        }
+        @if (exitoModal) {
+          <div class="alert alert-success text-sm py-2"><span>{{ exitoModal }}</span></div>
+        }
+      </div>
+
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarCrear()" [disabled]="guardando">Cancelar</button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#00BCD4; color:white; border:none;"
+          (click)="guardar()" [disabled]="guardando || !!exitoModal">
+          @if (!guardando) { ✓ Crear usuario }
+          @if (guardando) { <span class="loading loading-spinner loading-xs"></span> }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL EDITAR -->
+@if (modalEditarVisible) {
+  <div class="fixed inset-0 z-[10000] flex items-center justify-center p-3 lg:p-4"
+    style="background:rgba(0,0,0,0.80)"
+    (click)="cerrarEditar()">
+    <div class="w-full max-w-md rounded-2xl overflow-hidden border shadow-2xl flex flex-col"
+      style="background:#F8F9FA; border-color:#D0D8DC; max-height:90vh;"
+      (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-5 py-4 border-b"
+        style="background:#EEF4F5; border-color:#D0D8DC;">
+        <div>
+          <h3 class="font-bold text-base" style="color:#162830;">Editar usuario</h3>
+          <p class="text-xs mt-[2px] truncate" style="color:#4a6870;">
+            {{ usuarioSeleccionado?.email }}
+          </p>
+        </div>
+        <button class="btn btn-sm btn-circle btn-ghost opacity-50"
+          (click)="cerrarEditar()">✕</button>
+      </div>
+
+      <div class="overflow-y-auto p-5 flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Nombre</label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.nombre"/>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Apellido</label>
+            <input type="text" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.apellido"/>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Email</label>
+            <input type="email" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.email"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Celular</label>
+            <input type="tel" class="input input-bordered input-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.celular"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">Rol</label>
+            <select class="select select-bordered select-sm w-full"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              [(ngModel)]="formEditar.rol">
+              @for (r of ROLES; track r.value) {
+                <option [value]="r.value">{{ r.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between px-4 py-3 rounded-xl"
+          style="background:#EEF4F5; border:1px solid #D0D8DC;">
+          <div>
+            <p class="text-xs font-semibold" style="color:#162830;">Usuario activo</p>
+            <p class="text-xs" style="color:#4a6870;">Puede iniciar sesión</p>
+          </div>
+          <input type="checkbox" class="toggle toggle-sm" [(ngModel)]="formEditar.activo"/>
+        </div>
+
+        <div class="w-full h-px" style="background:#D0D8DC;"></div>
+
+        <p class="text-xs font-bold uppercase tracking-widest" style="color:#4a6870;">
+          Cambiar contraseña <span class="font-normal normal-case">(opcional)</span>
+        </p>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Nueva contraseña
+          </label>
+          <div class="relative">
+            <input [type]="mostrarNuevaPassword ? 'text' : 'password'"
+              class="input input-bordered input-sm w-full pr-10"
+              style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+              placeholder="Dejar vacío para no cambiar"
+              [(ngModel)]="formEditar.nuevaPassword"/>
+            <button type="button"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              style="background:transparent; border:none; cursor:pointer;"
+              (click)="mostrarNuevaPassword = !mostrarNuevaPassword">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                style="width:16px;height:16px;color:#9ca3af;"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  [attr.d]="mostrarNuevaPassword
+                    ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21'
+                    : 'M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:#9ca3af;">
+            Confirmar contraseña
+          </label>
+          <input type="password"
+            class="input input-bordered input-sm w-full"
+            style="background:#F8F9FA; border-color:#D0D8DC; color:#162830;"
+            placeholder="Repetir nueva contraseña"
+            [(ngModel)]="formEditar.confirmarPassword"/>
+        </div>
+
+        @if (errorEdicion) {
+          <div class="alert alert-error text-sm py-2"><span>⚠ {{ errorEdicion }}</span></div>
+        }
+        @if (exitoEdicion) {
+          <div class="alert alert-success text-sm py-2"><span>{{ exitoEdicion }}</span></div>
+        }
+      </div>
+
+      <div class="flex gap-3 px-5 py-4 border-t"
+        style="border-color:#D0D8DC; background:#EEF4F5;">
+        <button class="btn btn-sm btn-ghost flex-1" style="color:#4a6870;"
+          (click)="cerrarEditar()" [disabled]="guardandoEdicion">Cancelar</button>
+        <button class="btn btn-sm flex-1 font-semibold"
+          style="background:#00BCD4; color:white; border:none;"
+          (click)="guardarEdicion()" [disabled]="guardandoEdicion || !!exitoEdicion">
+          @if (!guardandoEdicion) { ✓ Guardar cambios }
+          @if (guardandoEdicion) { <span class="loading loading-spinner loading-xs"></span> }
+        </button>
+      </div>
+    </div>
+  </div>
+}
