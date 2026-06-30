@@ -5,7 +5,11 @@ import { tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private api = 'http://localhost:3000/api/auth';
+  
+  
+
+  private api = 'https://proyecto-grado-production-deae.up.railway.app/api/auth';
+  //private api = 'http://localhost:3000/api/auth';
 
   //private api = 'http://192.168.1.6:3000/api/auth';
 

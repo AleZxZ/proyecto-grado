@@ -6,7 +6,9 @@ import { Paciente, Prediccion, PrediccionResponse, CalendarioResponse } from '..
 
 @Injectable({ providedIn: 'root' })
 export class CitasService {
-  private api = 'http://localhost:3000/api';
+
+  private api = 'https://proyecto-grado-production-deae.up.railway.app/api';
+  //private api = 'http://localhost:3000/api';
 
   //private api = 'http://192.168.1.6:3000/api';
 
