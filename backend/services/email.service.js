@@ -4,7 +4,7 @@ const EmailService = {
 
   enviarPasswordTemporal: async (destinatario, nombre, passwordTemporal) => {
     await transporter.sendMail({
-      from:    `"Clínica Dental Escobar" <${process.env.EMAIL_USER}>`,
+      from: `"Clínica Dental Escobar" <no-reply@dentalescobar.com>`,
       to:      destinatario,
       subject: 'Restablecimiento de contraseña — Clínica Dental Escobar',
       html: `
