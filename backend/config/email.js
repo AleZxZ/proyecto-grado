@@ -2,6 +2,8 @@ const { MailtrapClient } = require('mailtrap');
 
 const client = new MailtrapClient({
   token: process.env.MAILTRAP_API_TOKEN,
+  testInboxId: Number(process.env.MAILTRAP_INBOX_ID),
+  sandbox: true,
 });
 
 module.exports = client;
