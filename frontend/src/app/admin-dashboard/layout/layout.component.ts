@@ -103,6 +103,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.polling = interval(5000).subscribe(() => {
       this.cargarSolicitudes();
     });
+    this.svc.getCalendarioTodos().subscribe();
   }
 
   ngOnDestroy(): void {

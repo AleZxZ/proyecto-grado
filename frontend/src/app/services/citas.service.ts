@@ -1,8 +1,9 @@
 // src/app/services/citas.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable , of } from 'rxjs';
 import { Paciente, Prediccion, PrediccionResponse, CalendarioResponse } from '../models/cita.model';
+import { tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class CitasService {
@@ -11,6 +12,11 @@ export class CitasService {
   //private api = 'http://localhost:3000/api';
 
   //private api = 'http://192.168.1.6:3000/api';
+
+  private _calendarioCache: CalendarioResponse | null = null;
+  private _pacientesCache: any[] | null = null;
+  private _tratamientosCache: Map<number, any[]> = new Map();
+  private _fechasBloqueadasCache: any[] | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -26,10 +32,13 @@ export class CitasService {
   }*/
 
   getCalendarioTodos(meses = 2): Observable<CalendarioResponse> {
+    if (this._calendarioCache) {
+      return of(this._calendarioCache);
+    }
     const params = new HttpParams().set('meses', meses);
     return this.http.get<CalendarioResponse>(
       `${this.api}/pacientes/calendario/todos`, { params }
-    );
+    ).pipe(tap(data => this._calendarioCache = data));
   }
   
   getTratamientos(sucursalId: number): Observable<any[]> {
@@ -49,7 +58,12 @@ export class CitasService {
   }
 
   getPacientesConDetalle(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/pacientes/detalle`);
+    if (this._pacientesCache) {
+      return of(this._pacientesCache);
+    }
+    return this.http.get<any[]>(`${this.api}/pacientes/detalle`).pipe(
+      tap(data => this._pacientesCache = data)
+    );
   }
 
   getHistorialClinicoPaciente(pacienteId: number): Observable<any> {
@@ -287,7 +301,12 @@ export class CitasService {
   }
 
   getFechasBloqueadas(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/ajustes/fechas-bloqueadas`);
+    if (this._fechasBloqueadasCache) {
+      return of(this._fechasBloqueadasCache);
+    }
+    return this.http.get<any[]>(`${this.api}/ajustes/fechas-bloqueadas`).pipe(
+      tap(data => this._fechasBloqueadasCache = data)
+    );
   }
 
   crearFechaBloqueada(fecha: string, motivo: string): Observable<any> {
@@ -315,6 +334,15 @@ export class CitasService {
   recuperarPassword(email: string): Observable<any> {
     return this.http.post<any>(`${this.api}/auth/recuperar-password`, { email });
   }
+
+
+  limpiarCache(): void {
+    this._calendarioCache      = null;
+    this._pacientesCache       = null;
+    this._fechasBloqueadasCache = null;
+    this._tratamientosCache.clear();
+  }
+  
 }
 
 

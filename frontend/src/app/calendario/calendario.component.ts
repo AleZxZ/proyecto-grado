@@ -213,7 +213,7 @@ guardarNuevaCita(): void {
     next: () => {
       this.guardandoNueva = false;
       this.exitoNuevaCita = `✓ Cita agendada correctamente para el ${f.fecha} a las ${f.hora}`;
-
+      this.svc.limpiarCache();
       // recargar calendario
       this.svc.getCalendarioTodos(2).subscribe({
         next: res => {
@@ -584,7 +584,7 @@ guardarNuevaCita(): void {
     this.svc.eliminarCita(id).subscribe({
       next: () => {
         this.eliminandoCita = null;
-
+        this.svc.limpiarCache(); 
         // recargar calendario
         this.svc.getCalendarioTodos(2).subscribe({
           next: res => {
@@ -628,6 +628,7 @@ guardarNuevaCita(): void {
     this.svc.cambiarEstadoCita(id, estado).subscribe({
       next: () => {
         this.marcandoEstado = null;
+        this.svc.limpiarCache();
         // recargar el calendario
         this.cargarTodo();
         this.cerrarModal();
