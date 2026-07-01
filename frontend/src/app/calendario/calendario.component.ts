@@ -226,7 +226,7 @@ guardarNuevaCita(): void {
         }
       });
 
-      setTimeout(() => this.cerrarNuevaCita(), 2500);
+      setTimeout(() => this.cerrarNuevaCita(), 1500);
     },
     error: (err) => {
       this.guardandoNueva = false;
@@ -551,7 +551,7 @@ guardarNuevaCita(): void {
         setTimeout(() => {
           this.cerrarConfirmar();
           this.cerrarModal();
-        }, 2500);
+        }, 1500);
       },
       error: (err) => {
         this.guardando      = false;
