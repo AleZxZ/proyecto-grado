@@ -62,15 +62,16 @@ const PacienteModel = {
         c.id, c.fecha, c.hora, c.motivo, c.notas,
         c.paciente_id,
         CONCAT(u.nombre, ' ', u.apellido) AS paciente_nombre,
-        t.nombre  AS tratamiento,
-        st.nombre AS subtratamiento,
+        COALESCE(t.nombre, 'Otro') AS tratamiento,
+        COALESCE(st.nombre, c.tratamiento_personalizado, 'Por asignar') AS subtratamiento,
+        c.tratamiento_personalizado,
         s.id      AS sucursal_id,
         s.nombre  AS sucursal_nombre
       FROM citas c
       JOIN pacientes       p  ON p.id  = c.paciente_id
       JOIN usuarios        u  ON u.id  = p.usuario_id
-      JOIN tratamientos    t  ON t.id  = c.tratamiento_id
-      JOIN subtratamientos st ON st.id = c.subtratamiento_id
+      LEFT JOIN tratamientos    t  ON t.id  = c.tratamiento_id
+      LEFT JOIN subtratamientos st ON st.id = c.subtratamiento_id
       JOIN sucursales      s  ON s.id  = c.sucursal_id
       WHERE c.estado = 'pendiente'
         AND c.fecha >= ?
@@ -78,7 +79,7 @@ const PacienteModel = {
     `, [hoy]);
     return rows;
   },
-
+  
   crear: async (datos) => {
     const { fecha_nac, telefono, direccion,
             genero, sucursal_pref, usuario_id } = datos;

@@ -144,15 +144,17 @@ const CitaModel = {
   },
 
   confirmarSolicitud: async (id, tratamientoId, subtratamientoId, personalizado, doctorId) => {
+    const porAsignar = (!tratamientoId && personalizado) ? 1 : 0;
     await db.query(`
       UPDATE citas SET
         estado                    = 'pendiente',
         tratamiento_id            = ?,
         subtratamiento_id         = ?,
         tratamiento_personalizado = ?,
-        doctor_id                 = ?
+        doctor_id                 = ?,
+        por_asignar               = ?
       WHERE id = ?
-    `, [tratamientoId || null, subtratamientoId || null, personalizado || null, doctorId || null, id]);
+    `, [tratamientoId || null, subtratamientoId || null, personalizado || null, doctorId || null, porAsignar, id]);
   },
 
   getPendientesAsignar: async (sucursalId) => {
@@ -168,7 +170,7 @@ const CitaModel = {
       JOIN pacientes  p ON p.id  = c.paciente_id
       JOIN usuarios   u ON u.id  = p.usuario_id
       JOIN sucursales s ON s.id  = c.sucursal_id
-      WHERE c.tratamiento_personalizado IS NOT NULL
+      WHERE c.por_asignar = 1
       ${whereSucursal}
       ORDER BY c.fecha DESC, c.hora DESC
     `, params);
@@ -180,7 +182,8 @@ const CitaModel = {
       UPDATE citas SET
         tratamiento_id            = ?,
         subtratamiento_id         = ?,
-        tratamiento_personalizado = ?
+        tratamiento_personalizado = ?,
+        por_asignar               = 0
       WHERE id = ?
     `, [tratamientoId || null, subtratamientoId || null, personalizado || null, id]);
   },

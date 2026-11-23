@@ -50,11 +50,11 @@ export class CitasService {
   }
 
   confirmarCita(datos: any): Observable<any> {
-    return this.http.post<any>(`${this.api}/citas/confirmar`, datos);
+    return this.http.post<any>(`${this.api}/citas/confirmar`, datos).pipe(tap(() => this.limpiarCache()));
   }
 
   eliminarCita(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.api}/citas/${id}`);
+    return this.http.delete<any>(`${this.api}/citas/${id}`).pipe(tap(() => this.limpiarCache()));
   }
 
   getPacientesConDetalle(): Observable<any[]> {
@@ -224,7 +224,7 @@ export class CitasService {
   }
 
   solicitarCita(datos: any): Observable<any> {
-    return this.http.post<any>(`${this.api}/citas`, datos);
+    return this.http.post<any>(`${this.api}/citas`, datos).pipe(tap(() => this.limpiarCache()));
   }
 
   getCitasCalendarioPaciente(): Observable<any> {
@@ -232,7 +232,7 @@ export class CitasService {
   }
 
   cancelarCita(id: number): Observable<any> {
-    return this.http.put<any>(`${this.api}/citas/${id}/estado`, { estado: 'cancelada' });
+    return this.http.put<any>(`${this.api}/citas/${id}/estado`, { estado: 'cancelada' }).pipe(tap(() => this.limpiarCache()));
   }
 
   getCalendarioPublico(): Observable<any[]> {
@@ -247,13 +247,14 @@ export class CitasService {
     return this.http.get<any[]>(`${this.api}/citas/hoy`);
   }
   cambiarEstadoCita(id: number, estado: string): Observable<any> {
-    return this.http.put<any>(`${this.api}/citas/${id}/estado`, { estado });
+    return this.http.put<any>(`${this.api}/citas/${id}/estado`, { estado }).pipe(tap(() => this.limpiarCache()));
   }
 
   
 
   rechazarSolicitud(id: number, motivo: string = ''): Observable<any> {
-    return this.http.put<any>(`${this.api}/citas/${id}/rechazar`, { motivo });
+    return this.http.put<any>(`${this.api}/citas/${id}/rechazar`, { motivo })
+      .pipe(tap(() => this.limpiarCache()));
   }
 
 
@@ -283,7 +284,7 @@ export class CitasService {
       tratamiento_id:            tratamientoId,
       subtratamiento_id:         subtratamientoId,
       tratamiento_personalizado: personalizado
-    });
+    }).pipe(tap(() => this.limpiarCache()));
   }
 
 
@@ -297,8 +298,9 @@ export class CitasService {
       tratamiento_id:            tratamientoId,
       subtratamiento_id:         subtratamientoId,
       tratamiento_personalizado: personalizado
-    });
+    }).pipe(tap(() => this.limpiarCache()));
   }
+
 
   getFechasBloqueadas(): Observable<any[]> {
     if (this._fechasBloqueadasCache) {
