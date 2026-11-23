@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { filter } from 'rxjs/operators';
 import { interval, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { fechaLocal } from '../../utils/fecha';
 
 @Component({
   selector: 'app-layout',
@@ -253,7 +254,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   formatFecha(fecha: string): string {
     if (!fecha) return '—';
-    return new Date(fecha).toLocaleDateString('es-BO', {
+    return fechaLocal(fecha).toLocaleDateString('es-BO', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
   }

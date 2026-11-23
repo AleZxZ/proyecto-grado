@@ -5,6 +5,7 @@ import { CitasService } from '../../../services/citas.service';
 import { AuthService } from '../../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { interval } from 'rxjs';
+import { fechaLocal } from '../../../utils/fecha';
 
 @Component({
   selector: 'app-inicio',
@@ -198,7 +199,7 @@ export class InicioComponent implements OnInit {
 
   formatFecha(fecha: string): string {
     if (!fecha) return '—';
-    return new Date(fecha).toLocaleDateString('es-BO', {
+    return fechaLocal(fecha).toLocaleDateString('es-BO', {
       weekday: 'long', day: '2-digit',
       month: 'long', year: 'numeric'
     });
