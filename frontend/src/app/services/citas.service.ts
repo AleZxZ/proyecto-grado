@@ -17,6 +17,8 @@ export class CitasService {
   private _pacientesCache: any[] | null = null;
   private _tratamientosCache: Map<number, any[]> = new Map();
   private _fechasBloqueadasCache: any[] | null = null;
+  private _calendarioTs = 0;
+  private readonly CACHE_MS = 10_000;
 
   constructor(private http: HttpClient) {}
 
@@ -32,13 +34,17 @@ export class CitasService {
   }*/
 
   getCalendarioTodos(meses = 2): Observable<CalendarioResponse> {
-    if (this._calendarioCache) {
-      return of(this._calendarioCache);
+    const vigente = this._calendarioCache && (Date.now() - this._calendarioTs) < this.CACHE_MS;
+    if (vigente) {
+      return of(this._calendarioCache!);
     }
     const params = new HttpParams().set('meses', meses);
     return this.http.get<CalendarioResponse>(
       `${this.api}/pacientes/calendario/todos`, { params }
-    ).pipe(tap(data => this._calendarioCache = data));
+    ).pipe(tap(data => {
+      this._calendarioCache = data;
+      this._calendarioTs = Date.now();
+    }));
   }
   
   getTratamientos(sucursalId: number): Observable<any[]> {
@@ -340,6 +346,7 @@ export class CitasService {
 
   limpiarCache(): void {
     this._calendarioCache      = null;
+    this._calendarioTs          = 0; 
     this._pacientesCache       = null;
     this._fechasBloqueadasCache = null;
     this._tratamientosCache.clear();
