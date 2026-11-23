@@ -81,6 +81,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     { label: 'Mi perfil',   ruta: '/dashboard/perfil',      icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
   ];
 
+  notificaciones: any[] = [];
+  private ultimaNotifId = 0;
+  private notifInicializadas = false;
+
   constructor(
     private svc:    CitasService,
     private auth:   AuthService,
@@ -99,10 +103,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
     // cargar solicitudes al inicio
     this.cargarSolicitudes();
+    this.cargarNotificaciones();
 
     // polling cada 30 segundos
     this.polling = interval(5000).subscribe(() => {
       this.cargarSolicitudes();
+      this.cargarNotificaciones();
     });
     this.svc.getCalendarioTodos().subscribe();
   }
@@ -127,6 +133,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   cerrarNotif(): void {
     this.notifVisible = false;
+    if (this.noLeidas > 0) {
+      this.svc.marcarTodasLeidas().subscribe({
+        next: () => this.notificaciones = this.notificaciones.map(n => ({ ...n, leida: 1 }))
+      });
+    }
   }
 
   // ── Modal confirmar ───────────────────────────────────────────────────────
@@ -291,5 +302,31 @@ export class LayoutComponent implements OnInit, OnDestroy {
       );
     }
     return this.MENU_EXTRA;
+  }
+
+  cargarNotificaciones(): void {
+    this.svc.getNotificaciones().subscribe({
+      next: lista => {
+        const maxId = lista.reduce((m: number, n: any) => Math.max(m, n.id), 0);
+        if (this.notifInicializadas && maxId > this.ultimaNotifId) {
+          this.svc.notificarCambioCalendario();
+        }
+        this.ultimaNotifId      = Math.max(this.ultimaNotifId, maxId);
+        this.notifInicializadas = true;
+        this.notificaciones     = lista;
+      }
+    });
+  }
+
+  get noLeidas(): number {
+    return this.notificaciones.filter(n => !n.leida).length;
+  }
+
+  get totalAvisos(): number {
+    return this.solicitudes.length + this.noLeidas;
+  }
+
+  get notifRecientes(): any[] {
+    return this.notificaciones.slice(0, 8);
   }
 }

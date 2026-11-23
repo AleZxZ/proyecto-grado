@@ -1,6 +1,13 @@
 const CitaModel = require('../models/cita.model');
 const NotificacionModel = require('../models/notificacion.model');
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
+               'agosto','septiembre','octubre','noviembre','diciembre'];
 
+function fechaTexto(f) {
+  const s = f instanceof Date ? f.toISOString().slice(0, 10) : String(f).slice(0, 10);
+  const [y, m, d] = s.split('-').map(Number);
+  return `${String(d).padStart(2, '0')} de ${MESES[m - 1]} de ${y}`;
+}
 
 const CitaController = {
 
@@ -196,7 +203,26 @@ const CitaController = {
       return res.status(400).json({ error: 'Estado inválido' });
     }
     try {
+      const antes = await NotificacionModel.getDatosCita(req.params.id);
       await CitaModel.cambiarEstado(req.params.id, estado);
+
+      const cancelaElPaciente = antes
+        && estado === 'cancelada'
+        && antes.estado !== 'cancelada'
+        && antes.paciente_usuario_id === req.usuario.id;
+
+      if (cancelaElPaciente) {
+        try {
+          const destinatarios = await NotificacionModel.getUsuariosDoctoresPorSucursal(antes.sucursal_id);
+          const mensaje = `${antes.paciente_nombre} canceló su cita del ${fechaTexto(antes.fecha)} a las ${String(antes.hora).slice(0, 5)}.`;
+          for (const uid of destinatarios) {
+            await NotificacionModel.crear(uid, '⚠ Cita cancelada por el paciente', mensaje);
+          }
+        } catch (err) {
+          console.error('ERROR notificar cancelación:', err.message);
+        }
+      }
+
       res.json({ mensaje: 'Estado actualizado correctamente' });
     } catch (e) { res.status(500).json({ error: e.message }); }
   },

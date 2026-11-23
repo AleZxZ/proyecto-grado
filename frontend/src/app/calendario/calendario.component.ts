@@ -1,11 +1,12 @@
 // src/app/components/calendar/calendar.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CitasService } from '../services/citas.service';
 import {
  CitaConfirmada, DiaCelda, MesCalendario, Paciente, Prediccion
 } from '../models/cita.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-calendario',
@@ -14,7 +15,8 @@ import {
   templateUrl: './calendario.component.html',
   styleUrls: ['./calendar.component.css'],
 })
-export class CalendarioComponent implements OnInit {
+
+export class CalendarioComponent implements OnInit, OnDestroy {
 
    // ── Estado general ────────────────────────────────────────────────────────
   pacientes: Paciente[]               = [];
@@ -267,11 +269,14 @@ guardarNuevaCita(): void {
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
   ];
 
+  private cambioSub?: Subscription;
+
   constructor(private svc: CitasService) {}
 
   ngOnInit(): void { 
     this.cargarTodo(); 
     this.cargarFechasBloqueadas();
+    this.cambioSub = this.svc.calendarioInvalidado$.subscribe(() => this.cargarTodo());
   }
 
   // ── Carga principal ───────────────────────────────────────────────────────
@@ -666,5 +671,9 @@ guardarNuevaCita(): void {
     this.formNuevaCita.paciente_id = p.id;
     this.busquedaPaciente          = p.nombre;
     this.pacientesFiltrados        = [];
+  }
+
+  ngOnDestroy(): void {
+    this.cambioSub?.unsubscribe();
   }
 }

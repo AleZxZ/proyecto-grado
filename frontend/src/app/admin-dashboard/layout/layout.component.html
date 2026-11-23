@@ -28,10 +28,10 @@
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
-          @if (countSolicitudes > 0) {
+          @if (totalAvisos > 0) {
             <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
               style="background:#EF4444; color:white;">
-              {{ countSolicitudes }}
+              {{ totalAvisos }}
             </span>
           }
         </button>
@@ -111,10 +111,10 @@
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
-          @if (countSolicitudes > 0) {
+          @if (totalAvisos > 0) {
             <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
               style="background:#EF4444; color:white;">
-              {{ countSolicitudes }}
+              {{ totalAvisos }}
             </span>
           }
         </button>
@@ -227,7 +227,7 @@
     <div class="flex items-center justify-between px-4 py-3"
       style="background:#162830; border-bottom:1px solid #1e3540;">
       <p class="text-xs font-bold" style="color:white;">
-        🔔 Solicitudes de citas ({{ countSolicitudes }})
+        🔔 Solicitudes de citas ({{ totalAvisos }})
       </p>
       <button class="btn btn-xs btn-circle btn-ghost opacity-50"
         style="color:white;"
@@ -235,14 +235,23 @@
     </div>
 
     <div style="overflow-y:auto; flex:1;">
-      @if (solicitudes.length === 0) {
+      @if (solicitudes.length === 0 && notificaciones.length === 0) {
         <div class="px-4 py-8 text-center">
           <p class="text-xs" style="color:rgba(255,255,255,0.4);">
-            No hay solicitudes pendientes
+            No hay solicitudes ni notificaciones
           </p>
         </div>
       }
-
+      @for (n of notifRecientes; track n.id) {
+        <div class="px-4 py-3 border-b" style="border-color:#1e3540;"
+          [style.background]="!n.leida ? 'rgba(255,160,0,0.10)' : 'transparent'">
+          <p class="text-xs font-semibold" style="color:white;">{{ n.titulo }}</p>
+          <p class="text-[10px] mt-[2px]" style="color:rgba(255,255,255,0.6);">{{ n.mensaje }}</p>
+          <p class="text-[9px] mt-1" style="color:rgba(255,255,255,0.35);">
+            {{ n.creado_en | date:'dd/MM HH:mm' }}
+          </p>
+        </div>
+      }
       @for (s of solicitudes; track s.id) {
         <div class="px-4 py-3 border-b" style="border-color:#1e3540;">
           <p class="text-xs font-semibold" style="color:white;">{{ s.paciente_nombre }}</p>

@@ -4,6 +4,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable , of } from 'rxjs';
 import { Paciente, Prediccion, PrediccionResponse, CalendarioResponse } from '../models/cita.model';
 import { tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+
 
 @Injectable({ providedIn: 'root' })
 export class CitasService {
@@ -19,6 +22,8 @@ export class CitasService {
   private _fechasBloqueadasCache: any[] | null = null;
   private _calendarioTs = 0;
   private readonly CACHE_MS = 10_000;
+
+  calendarioInvalidado$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
 
@@ -350,6 +355,13 @@ export class CitasService {
     this._pacientesCache       = null;
     this._fechasBloqueadasCache = null;
     this._tratamientosCache.clear();
+  }
+
+  
+
+  notificarCambioCalendario(): void {
+    this.limpiarCache();
+    this.calendarioInvalidado$.next();
   }
   
 }
