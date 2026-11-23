@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CitasService } from '../../../services/citas.service';
 import { AuthService } from '../../../services/auth.service';
+import { fechaLocal } from '../../../utils/fecha';
+
 
 @Component({
   selector: 'app-mis-pagos',
@@ -60,7 +62,10 @@ export class MisPagosComponent implements OnInit {
 
   formatFecha(fecha: string): string {
     if (!fecha) return '—';
-    return new Date(fecha).toLocaleDateString('es-BO', {
+    const d = (typeof fecha === 'string' && fecha.length === 10)
+      ? fechaLocal(fecha)
+      : new Date(fecha);
+    return d.toLocaleDateString('es-BO', {
       day: '2-digit', month: 'short', year: 'numeric'
     });
   }
