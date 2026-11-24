@@ -112,8 +112,8 @@ const IngresoModel = {
       .toISOString().split('T')[0];
 
     const paramsAntAbonos = sucursalId
-      ? [fechaAntDesde, fechaAntHasta, sucursalId]
-      : [fechaAntDesde, fechaAntHasta];
+      ? [fechaAntDesde, fechaAntHasta + ' 23:59:59', sucursalId]
+      : [fechaAntDesde, fechaAntHasta + ' 23:59:59'];
 
     const [ingresosAnt] = await db.query(`
       SELECT COALESCE(SUM(monto), 0) AS total

@@ -266,7 +266,7 @@ export class IngresosComponent implements OnInit {
   }
 
   getDiffPorc(actual: number, anterior: number): string {
-    if (anterior === 0) return '+100%';
+    if (anterior === 0) return actual === 0 ? '0%' : 'sin periodo previo';
     const diff = ((actual - anterior) / anterior * 100).toFixed(1);
     return Number(diff) >= 0 ? `+${diff}%` : `${diff}%`;
   }
