@@ -21,7 +21,7 @@ export class CitasService {
   private _tratamientosCache: Map<number, any[]> = new Map();
   private _fechasBloqueadasCache: any[] | null = null;
   private _calendarioTs = 0;
-  private readonly CACHE_MS = 10_000;
+  private readonly CACHE_MS = 50_000;
 
   calendarioInvalidado$ = new Subject<void>();
 
