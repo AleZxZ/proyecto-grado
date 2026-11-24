@@ -23,7 +23,52 @@
           1. Selecciona sucursal
         </p>
 
-        <!-- ═══ CALENDARIO ═══ -->
+        <div class="flex gap-3">
+          <button class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
+            [style.background]="form.sucursal_id === 1
+              ? 'rgba(0,188,212,0.15)' : 'white'"
+            [style.color]="form.sucursal_id === 1 ? '#005f6b' : '#4a6870'"
+            [style.border-color]="form.sucursal_id === 1 ? '#00BCD4' : '#D0D8DC'"
+            (click)="form.sucursal_id = 1; form.hora = ''; form.fecha = ''; cargarFechasBloqueadas(1)">
+            🏥 Sucursal Centro
+          </button>
+          <button class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
+            [style.background]="form.sucursal_id === 2
+              ? 'rgba(139,195,74,0.15)' : 'white'"
+            [style.color]="form.sucursal_id === 2 ? '#3d5c1a' : '#4a6870'"
+            [style.border-color]="form.sucursal_id === 2 ? '#8BC34A' : '#D0D8DC'"
+            (click)="form.sucursal_id = 2; form.hora = ''; form.fecha = ''; cargarFechasBloqueadas(2)">
+            🏥 Sucursal Este
+          </button>
+        </div>
+      </div>
+
+      <!-- Fecha seleccionada -->
+      @if (form.fecha) {
+        <div class="rounded-2xl p-4"
+          style="background:rgba(13,112,107,0.08); border:1px solid rgba(13,112,107,0.2);">
+          <p class="text-xs font-bold uppercase tracking-widest mb-1"
+            style="color:#4a6870;">
+            2. Fecha seleccionada
+          </p>
+          <p class="text-sm font-semibold capitalize" style="color:#0d706b;">
+            {{ formatFechaSeleccionada() }}
+          </p>
+        </div>
+      } @else {
+        <div class="rounded-2xl p-4"
+          style="background:#EEF4F5; border:1px solid #D0D8DC;">
+          <p class="text-xs font-bold uppercase tracking-widest mb-1"
+            style="color:#4a6870;">
+            2. Selecciona una fecha
+          </p>
+          <p class="text-xs" style="color:#B0BEC5;">
+            Haz clic en un día del calendario
+          </p>
+        </div>
+      }
+
+       <!-- ═══ CALENDARIO ═══ -->
         <div class="rounded-2xl overflow-hidden"
           style="border:1px solid #D0D8DC;">
 
@@ -119,50 +164,6 @@
           </div>
 
         </div>
-        <div class="flex gap-3">
-          <button class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
-            [style.background]="form.sucursal_id === 1
-              ? 'rgba(0,188,212,0.15)' : 'white'"
-            [style.color]="form.sucursal_id === 1 ? '#005f6b' : '#4a6870'"
-            [style.border-color]="form.sucursal_id === 1 ? '#00BCD4' : '#D0D8DC'"
-            (click)="form.sucursal_id = 1; form.hora = ''; form.fecha = ''; cargarFechasBloqueadas(1)">
-            🏥 Sucursal Centro
-          </button>
-          <button class="flex-1 py-3 rounded-xl border text-sm font-medium transition-all"
-            [style.background]="form.sucursal_id === 2
-              ? 'rgba(139,195,74,0.15)' : 'white'"
-            [style.color]="form.sucursal_id === 2 ? '#3d5c1a' : '#4a6870'"
-            [style.border-color]="form.sucursal_id === 2 ? '#8BC34A' : '#D0D8DC'"
-            (click)="form.sucursal_id = 2; form.hora = ''; form.fecha = ''; cargarFechasBloqueadas(2)">
-            🏥 Sucursal Este
-          </button>
-        </div>
-      </div>
-
-      <!-- Fecha seleccionada -->
-      @if (form.fecha) {
-        <div class="rounded-2xl p-4"
-          style="background:rgba(13,112,107,0.08); border:1px solid rgba(13,112,107,0.2);">
-          <p class="text-xs font-bold uppercase tracking-widest mb-1"
-            style="color:#4a6870;">
-            2. Fecha seleccionada
-          </p>
-          <p class="text-sm font-semibold capitalize" style="color:#0d706b;">
-            {{ formatFechaSeleccionada() }}
-          </p>
-        </div>
-      } @else {
-        <div class="rounded-2xl p-4"
-          style="background:#EEF4F5; border:1px solid #D0D8DC;">
-          <p class="text-xs font-bold uppercase tracking-widest mb-1"
-            style="color:#4a6870;">
-            2. Selecciona una fecha
-          </p>
-          <p class="text-xs" style="color:#B0BEC5;">
-            Haz clic en un día del calendario
-          </p>
-        </div>
-      }
 
       <!-- Horas disponibles -->
       @if (form.fecha) {
