@@ -200,8 +200,8 @@ const CitaModel = {
     const params        = sucursalId ? [sucursalId] : [];
 
     const [rows] = await db.query(`
-      SELECT c.id, c.fecha, c.hora, c.motivo, c.notas,
-            CONCAT(u.nombre, ' ', u.apellido) AS paciente_nombre,
+      SELECT c.id, c.paciente_id, c.fecha, c.hora, c.motivo, c.notas,
+      CONCAT(u.nombre, ' ', u.apellido) AS paciente_nombre,
             t.nombre  AS tratamiento,
             st.nombre AS subtratamiento,
             s.nombre  AS sucursal_nombre
