@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy  } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { CitasService } from '../../../services/citas.service';
 import { AuthService } from '../../../services/auth.service';
 import { FormsModule } from '@angular/forms';
-import { interval } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { fechaLocal } from '../../../utils/fecha';
+
 
 @Component({
   selector: 'app-inicio',
@@ -14,7 +15,7 @@ import { fechaLocal } from '../../../utils/fecha';
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })
-export class InicioComponent implements OnInit {
+export class InicioComponent implements OnInit, OnDestroy {
 
   usuario:      any   = null;
   citasHoy:     any[] = [];
@@ -24,6 +25,8 @@ export class InicioComponent implements OnInit {
   atendidosHoy: number = 0;
   marcandoRealizada: number | null = null;
   marcandoCancelada: number | null = null;
+
+  private pollingSub?: Subscription;
 
   pendientesAsignar:    any[]  = [];
   modalAsignarVisible   = false;
@@ -45,7 +48,8 @@ export class InicioComponent implements OnInit {
 
   constructor(
     private svc:  CitasService,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +57,7 @@ export class InicioComponent implements OnInit {
     this.cargarTodo();
 
     // polling cada 4 segundos
-    interval(4000).subscribe(() => {
+    this.pollingSub = interval(4000).subscribe(() => {
       this.svc.getCitasHoy().subscribe({
         next: c => this.citasHoy = c
       });
@@ -209,6 +213,16 @@ export class InicioComponent implements OnInit {
     return new Date().toLocaleDateString('es-BO', {
       weekday: 'long', day: '2-digit',
       month: 'long', year: 'numeric'
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pollingSub?.unsubscribe();
+  }
+
+  irAlOdontograma(c: any): void {
+    this.router.navigate(['/dashboard/odontograma'], {
+      queryParams: { paciente: c.paciente_id }
     });
   }
 

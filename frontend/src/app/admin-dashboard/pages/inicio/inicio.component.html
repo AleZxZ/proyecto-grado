@@ -106,7 +106,9 @@
               </span>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold truncate" style="color:#162830;">
+              <p class="text-sm font-semibold truncate cursor-pointer hover:underline"
+                style="color:#162830;"
+                (click)="irAlOdontograma(c)">
                 {{ c.paciente_nombre }}
               </p>
               <p class="text-xs truncate" style="color:#4a6870;">

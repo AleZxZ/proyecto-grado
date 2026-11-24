@@ -5,6 +5,7 @@ import { CitasService } from '../../../services/citas.service';
 import { OrtodonciaComponent } from './ortodoncia/ortodoncia.component';
 import jsPDF from 'jspdf';
 import { LucideAngularModule } from "lucide-angular";
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-odontograma',
@@ -115,14 +116,26 @@ export class OdontogramaComponent implements OnInit {
   fechaHasta            = new Date().toISOString().split('T')[0];
   historialFiltradoPDF: any[] = [];
 
-  constructor(private svc: CitasService) {}
+  constructor(private svc: CitasService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void { this.cargarPacientes(); }
 
   // ── Pacientes ─────────────────────────────────────────────────────────────
   cargarPacientes(): void {
     this.svc.getPacientes().subscribe({
-      next: p => { this.pacientes = p; this.pacientesFiltrados = p; }
+      next: p => {
+        this.pacientes = p;
+        this.pacientesFiltrados = p;
+
+        // si llega ?paciente=ID desde el inicio, abrirlo directamente
+        const id = Number(this.route.snapshot.queryParamMap.get('paciente'));
+        if (id) {
+          const encontrado = p.find((x: any) => x.id === id);
+          if (encontrado) this.seleccionarPaciente(encontrado);
+        }
+      }
     });
   }
 
